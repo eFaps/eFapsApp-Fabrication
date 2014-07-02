@@ -20,16 +20,27 @@
  Last Changed By: $Author$
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>2d9723d0-fd27-4c97-8dfb-c31dd25021fb</uuid>
+    <uuid>88a3d9be-141a-4320-bc8d-3bd6a34cfb83</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_MyDesk</name>
-        <childs>
-            <child>Fabrication_ProcessMyDesk</child>
-        </childs>
+        <name>Fabrication_ProcessMyDesk</name>
+        <access>
+            <role>Fabrication_Admin</role>
+            <role>Fabrication_Modifier</role>
+            <role>Fabrication_Reader</role>
+        </access>
+        <target>
+            <menu>Fabrication_ProcessMyDesk_Menu</menu>
+            <table>Fabrication_ProcessTable</table>
+            <evaluate program="org.efaps.esjp.common.uitable.MultiPrint">
+                <property name="Type">Fabrication_Process</property>
+            </evaluate>
+        </target>
+        <property name="Target">content</property>
+        <property name="TargetShowCheckBoxes">true</property>
     </definition>
-</ui-menu>
+</ui-command>

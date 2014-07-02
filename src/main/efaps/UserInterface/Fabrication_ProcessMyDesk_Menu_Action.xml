@@ -22,14 +22,15 @@
 -->
 <ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>2d9723d0-fd27-4c97-8dfb-c31dd25021fb</uuid>
+    <uuid>c94e45ff-213b-4dd4-8ccf-02f987371f22</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_MyDesk</name>
+        <name>Fabrication_ProcessMyDesk_Menu_Action</name>
         <childs>
-            <child>Fabrication_ProcessMyDesk</child>
+            <child>Fabrication_ProcessMyDesk_Menu_Action_Create</child>
+            <child>Fabrication_ProcessMyDesk_Menu_Action_Delete</child>
         </childs>
     </definition>
 </ui-menu>

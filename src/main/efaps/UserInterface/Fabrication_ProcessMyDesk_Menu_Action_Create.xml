@@ -20,16 +20,27 @@
  Last Changed By: $Author$
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>2d9723d0-fd27-4c97-8dfb-c31dd25021fb</uuid>
+    <uuid>0804f543-8755-49c2-af7d-6250edb6199c</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_MyDesk</name>
-        <childs>
-            <child>Fabrication_ProcessMyDesk</child>
-        </childs>
+        <name>Fabrication_ProcessMyDesk_Menu_Action_Create</name>
+        <access>
+            <role>Fabrication_Admin</role>
+            <role>Fabrication_Modifier</role>
+        </access>
+        <target>
+            <form>Fabrication_ProcessForm</form>
+            <execute method="create" program="org.efaps.esjp.fabrication.Process">
+                <property name="StatusGroup">Fabrication_ProcessStatus</property>
+                <property name="Status">Open</property>
+            </execute>
+        </target>
+        <property name="Target">modal</property>
+        <property name="TargetCreateType">Fabrication_Process</property>
+        <property name="TargetMode">create</property>
     </definition>
-</ui-menu>
+</ui-command>

@@ -20,17 +20,19 @@
  Last Changed By: $Author$
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-search xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>a3cd45a8-c5c1-4fcd-915b-9d390465978d</uuid>
-    <file-application>eFapsApp-Fabrication</file-application>
+    <uuid>d7665958-66ff-4d58-80c6-8415989aedbd</uuid>
+    <file-application>eFapsApp-ImportExport</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_ProcessTree_Documents_Menu_Action</name>
+        <name>Fabrication_ProcessTree_Documents_Menu_Action_AddExisting_Search</name>
+        <default>
+            <command>Sales_ProductionOrderSearch</command>
+        </default>
         <childs>
-            <child>Fabrication_ProcessTree_Documents_Menu_Action_AddExisting</child>
-            <child>Fabrication_ProcessTree_Documents_Menu_Action_Disconnect</child>
+            <child>Sales_ProductionOrderSearch</child>
         </childs>
     </definition>
-</ui-menu>
+</ui-search>

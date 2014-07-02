@@ -40,7 +40,7 @@
         <attribute>
             <name>ToLink</name>
             <type>Link</type>
-            <typelink>ProductionOrder</typelink>
+            <typelink>Sales_ProductionOrder</typelink>
             <sqltable>Fabrication_Process2ObjectSQLTable</sqltable>
             <sqlcolumn>TOID</sqlcolumn>
         </attribute>

@@ -86,7 +86,7 @@
         <attribute>
             <name>StatusAbstract</name>
             <type>Status</type>
-            <typelink>Fabrication__ProcessStatusAbstract</typelink>
+            <typelink>Fabrication_ProcessStatusAbstract</typelink>
             <sqltable>Fabrication_ProcessSQLTable</sqltable>
             <sqlcolumn>STATUS</sqlcolumn>
             <trigger event="RANGE_VALUE"

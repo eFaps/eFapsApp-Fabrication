@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
- Copyright 2003 - 2014 The eFaps Team
+ Copyright 2013 - 2014 The eFaps Team
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -20,28 +20,15 @@
  Last Changed By: $Author$
 
 -->
-<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<numbergenerator xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>0804f543-8755-49c2-af7d-6250edb6199c</uuid>
+    <uuid>7ae35ddb-473e-41b4-aaf5-02ace7ec4a6d</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_ProcessMyDesk_Menu_Action_Create</name>
-        <access>
-            <role>Fabrication_Admin</role>
-            <role>Fabrication_Modifier</role>
-        </access>
-        <target>
-            <form>Fabrication_ProcessForm</form>
-            <execute method="create" program="org.efaps.esjp.fabrication.Process">
-                <property name="UseNumberGenerator4Name">true</property>
-                <property name="StatusGroup">Fabrication_ProcessStatus</property>
-                <property name="Status">Open</property>
-            </execute>
-        </target>
-        <property name="Target">modal</property>
-        <property name="TargetCreateType">Fabrication_Process</property>
-        <property name="TargetMode">create</property>
+        <name>Fabrication_ProcessSequence</name>
+        <format>PP-%05d</format>
+        <startvalue>1</startvalue>
     </definition>
-</ui-command>
+</numbergenerator>

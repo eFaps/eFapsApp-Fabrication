@@ -33,6 +33,9 @@
             <form>Fabrication_ProcessForm</form>
         </target>
         <type>Fabrication_Process</type>
+        <childs>
+            <child>Fabrication_ProcessTree_Documents</child>
+        </childs>
         <property name="Target">content</property>
         <property name="TargetMode">view</property>
     </definition>

@@ -20,19 +20,30 @@
  Last Changed By: $Author$
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>d1a0f7c5-95ea-4913-aed8-9dac3bd81997</uuid>
+    <uuid>c1fa0b45-2fa2-41da-aeb2-060aef9e8ac0</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_ProcessTree_Menu_Action</name>
-        <childs>
-            <child>Fabrication_ProcessTree_Menu_Action_Edit</child>
-            <child>Fabrication_ProcessTree_Menu_Action_SetClosed</child>
-            <child>Fabrication_ProcessTree_Menu_Action_SetCanceled</child>
-            <child>ERP_DocumentAbstractTree_Action_EditStatus</child>
-        </childs>
+        <name>Fabrication_ProcessTree_Menu_Action_SetCanceled</name>
+        <access>
+            <role>Fabrication_Admin</role>
+            <role>Fabrication_Modifier</role>
+        </access>
+        <target>
+            <execute method="setStatus" program="org.efaps.esjp.admin.datamodel.StatusValue">
+                <property name="Status">Canceled</property>
+            </execute>
+            <trigger event="UI_ACCESSCHECK" method="check4Status"
+                name="Fabrication_ProcessTree_Menu_Action_SetClosed.UI_ACCESSCHECK"
+                program="org.efaps.esjp.admin.access.AccessCheck4UI">
+                <property name="Status">!Canceled</property>
+            </trigger>
+        </target>
+        <property name="AskUser">true</property>
+        <property name="Submit">true</property>
+        <property name="SubmitSelectedRows">-1</property>
     </definition>
-</ui-menu>
+</ui-command>

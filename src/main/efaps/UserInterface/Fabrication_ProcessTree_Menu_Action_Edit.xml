@@ -35,6 +35,11 @@
         <target>
             <form>Fabrication_ProcessForm</form>
             <execute program="org.efaps.esjp.common.uiform.Edit" />
+            <trigger event="UI_ACCESSCHECK" method="check4Status"
+                name="Fabrication_ProcessTree_Menu_Action_Edit.UI_ACCESSCHECK"
+                program="org.efaps.esjp.admin.access.AccessCheck4UI">
+                <property name="Status">Open</property>
+            </trigger>
         </target>
         <property name="Target">modal</property>
         <property name="TargetMode">edit</property>

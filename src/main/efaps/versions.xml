@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+  Copyright 2003 - 2014 The eFaps Team
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  Author:          The eFaps Team
+  Revision:        $Rev$
+  Last Changed:    $Date$
+  Last Changed By: $Author$
+
+-->
+
+<install xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+    <application>eFapsApp-Fabrication</application>
+    <dependencies>
+        <dependency order="0">
+            <groupId>org.efaps</groupId>
+            <artifactId>efaps-kernel-install</artifactId>
+            <version>3.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency order="1">
+            <groupId>org.efaps</groupId>
+            <artifactId>efaps-webapp-install</artifactId>
+            <version>3.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency order="2">
+            <groupId>org.efaps.apps</groupId>
+            <artifactId>contacts</artifactId>
+            <version>3.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency order="3">
+            <groupId>org.efaps.apps</groupId>
+            <artifactId>commons</artifactId>
+            <version>3.0.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <version number="1" reloadCache="false" login="true" compile="true">
+        <description>Install ERP-Products Basic Modul.</description>
+        <script type="groovy">
+        import java.io.File;
+        import java.util.UUID;
+        import org.efaps.admin.runlevel.RunLevel;
+        import org.efaps.admin.user.JAASSystem;
+        import org.efaps.admin.user.Role;
+        import org.efaps.db.Context;
+        import org.efaps.db.QueryBuilder;
+        import org.efaps.db.InstanceQuery;
+        import org.efaps.esjp.admin.ui.UIUpdate;
+
+        EFAPS_LOGGER.info("Importing Data for eFapsApp-Production");
+
+        RunLevel.init("shell");
+        RunLevel.execute();
+
+        <!-- Fabrication_MyDesk, MainToolBar -->
+        UIUpdate update = new UIUpdate();
+        update.add2Menu("2d9723d0-fd27-4c97-8dfb-c31dd25021fb", "87001cc3-c45c-44de-b8f1-776df507f268", 2);
+
+     </script>
+    </version>
+</install>

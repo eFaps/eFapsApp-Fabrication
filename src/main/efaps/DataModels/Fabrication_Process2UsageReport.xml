@@ -20,20 +20,29 @@
  Last Changed By: $Author$
 
 -->
-<ui-search xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<datamodel-type xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>d7665958-66ff-4d58-80c6-8415989aedbd</uuid>
-    <file-application>eFapsApp-ImportExport</file-application>
+    <uuid>6d84d16a-05e5-47fb-8a41-8f9c1d9b58a5</uuid>
+    <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
+    <specification/>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_ProcessTree_Documents_Menu_Action_AddExisting_Search</name>
-        <default>
-            <command>Sales_ProductionOrderSearch</command>
-        </default>
-        <childs>
-            <child>Sales_ProductionOrderSearch</child>
-            <child>Sales_UsageReportSearch</child>
-        </childs>
+        <name>Fabrication_Process2UsageReport</name>
+        <parent>Fabrication_Process2DocumentAbstract</parent>
+        <attribute>
+            <name>FromLink</name>
+            <type>Link</type>
+            <typelink>Fabrication_Process</typelink>
+            <sqltable>Fabrication_Process2ObjectSQLTable</sqltable>
+            <sqlcolumn>FROMID</sqlcolumn>
+        </attribute>
+        <attribute>
+            <name>ToLink</name>
+            <type>Link</type>
+            <typelink>Sales_UsageReport</typelink>
+            <sqltable>Fabrication_Process2ObjectSQLTable</sqltable>
+            <sqlcolumn>TOID</sqlcolumn>
+        </attribute>
     </definition>
-</ui-search>
+</datamodel-type>

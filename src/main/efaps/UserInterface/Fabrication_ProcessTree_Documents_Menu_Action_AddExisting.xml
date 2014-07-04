@@ -48,6 +48,10 @@
                 <!-- Sales_UsageReport -->
                 <property name="ConnectChildType01">71c6e458-7a56-4bb6-bed4-dd014c6a65f0</property>
 
+                <!-- Fabrication_Process2ProductionReport -->
+                <property name="ConnectType02">59e72720-04c5-4443-add1-96c2ae97017a</property>
+                <!-- Sales_ProductionReport -->
+                <property name="ConnectChildType02">f069a1fc-f500-4e2c-9ef9-6727115ca317</property>
             </execute>
         </target>
         <property name="Target">modal</property>

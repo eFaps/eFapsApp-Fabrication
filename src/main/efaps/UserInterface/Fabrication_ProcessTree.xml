@@ -35,6 +35,7 @@
         <type>Fabrication_Process</type>
         <childs>
             <child>Fabrication_ProcessTree_Documents</child>
+            <child>Fabrication_ProcessTree_ProductionOrderReport</child>
         </childs>
         <property name="Target">content</property>
         <property name="TargetMode">view</property>

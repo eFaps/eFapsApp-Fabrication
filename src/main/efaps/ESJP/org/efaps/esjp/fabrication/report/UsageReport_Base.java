@@ -23,22 +23,17 @@ package org.efaps.esjp.fabrication.report;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
-import net.sf.dynamicreports.report.base.expression.AbstractSimpleExpression;
 import net.sf.dynamicreports.report.builder.DynamicReports;
 import net.sf.dynamicreports.report.builder.column.ComponentColumnBuilder;
 import net.sf.dynamicreports.report.builder.column.TextColumnBuilder;
 import net.sf.dynamicreports.report.builder.component.GenericElementBuilder;
-import net.sf.dynamicreports.report.builder.component.SubreportBuilder;
 import net.sf.dynamicreports.report.builder.component.TextFieldBuilder;
 import net.sf.dynamicreports.report.builder.expression.AbstractComplexExpression;
-import net.sf.dynamicreports.report.constant.StretchType;
 import net.sf.dynamicreports.report.definition.ReportParameters;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -62,7 +57,6 @@ import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
 import org.efaps.esjp.common.jasperreport.AbstractDynamicReport;
-import org.efaps.esjp.common.jasperreport.AbstractDynamicReport_Base.ExportType;
 import org.efaps.esjp.sales.report.ProfServReceiptReport;
 import org.efaps.ui.wicket.models.EmbeddedLink;
 import org.efaps.util.EFapsException;
@@ -133,13 +127,13 @@ public abstract class UsageReport_Base
     protected AbstractDynamicReport getReport(final Parameter _parameter)
         throws EFapsException
     {
-        return new DynProductionOrderReport();
+        return new DynUsageReport();
     }
 
     /**
      * Report class.
      */
-    public static class DynProductionOrderReport
+    public static class DynUsageReport
         extends AbstractDynamicReport
     {
 
@@ -147,7 +141,9 @@ public abstract class UsageReport_Base
         protected JRDataSource createDataSource(final Parameter _parameter)
             throws EFapsException
         {
-            final Map<Instance, ProductBean> dataMap = new HashMap<>();
+
+
+            final Map<Instance, DataBean> dataMap = new HashMap<>();
             final QueryBuilder queryBldr = new QueryBuilder(CISales.PositionAbstract);
             add2QueryBldr(_parameter, queryBldr);
             final MultiPrintQuery multi = queryBldr.getPrint();
@@ -158,58 +154,27 @@ public abstract class UsageReport_Base
             final SelectBuilder prodDescSel = new SelectBuilder(prodSel)
                             .attribute(CIProducts.ProductAbstract.Description);
             multi.addSelect(prodInstSel, prodNameSel, prodDescSel);
-            multi.addAttribute(CISales.PositionAbstract.Quantity);
+            multi.addAttribute(CISales.PositionAbstract.Quantity, CISales.PositionAbstract.UoM);
             multi.execute();
             while (multi.next()) {
                 final Instance prodInst = multi.<Instance>getSelect(prodInstSel);
-                final ProductBean bean;
+                final DataBean bean;
                 if (dataMap.containsKey(prodInst)) {
                     bean = dataMap.get(prodInst);
                 } else {
-                    bean = getProductBean(_parameter);
+                    bean = getBean(_parameter);
                     dataMap.put(prodInst, bean);
                     bean.setInstance(prodInst);
                     bean.setName(multi.<String>getSelect(prodNameSel));
                     bean.setDescription(multi.<String>getSelect(prodDescSel));
+                    bean.setUoM(Dimension.getUoM(multi.<Long>getAttribute( CISales.PositionAbstract.UoM)).getName());
                 }
                 bean.addQuantity(multi.<BigDecimal>getAttribute(CISales.PositionAbstract.Quantity));
             }
-            final List<ProductBean> datasource = new ArrayList<>(dataMap.values());
-            Collections.sort(datasource, new Comparator<ProductBean>(){
 
-                @Override
-                public int compare(final ProductBean _arg0,
-                                   final ProductBean _arg1)
-                {
-                    return _arg0.getName().compareTo(_arg1.getName());
-                }});
+            final List<DataBean> datasource = new ArrayList<>(dataMap.values());
 
-            final Map<Instance, BOMBean> inst2bom = new HashMap<>();
-            for (final ProductBean prodBean : datasource) {
-                final List<BOMBean> bom = prodBean.getBom();
-                for (final BOMBean bean  :bom) {
-                    BOMBean beanTmp;
-                    if (inst2bom.containsKey(bean.getMatInstance())) {
-                        beanTmp = inst2bom.get(bean.getMatInstance());
-                        beanTmp.setQuantity(beanTmp.getQuantity().add(bean.getQuantity()));
-                    } else {
-                        beanTmp = new BOMBean();
-                        inst2bom.put(bean.getMatInstance(), beanTmp);
-                        beanTmp.setMatInstance(bean.getMatInstance());
-                        beanTmp.setQuantity(bean.getQuantity());
-                        beanTmp.setMatDescription(bean.getMatDescription());
-                        beanTmp.setMatName(bean.getMatName());
-                        beanTmp.setUom(bean.getUom());
-                    }
-                }
-            }
 
-            final ProductBean subBean = getProductBean(_parameter);
-            datasource.add(subBean);
-            subBean.setQuantity(null);
-            subBean.setName("-");
-            subBean.setDescription("Summa");
-            subBean.bom.addAll(inst2bom.values());
             return new JRBeanCollectionDataSource(datasource);
         }
 
@@ -224,17 +189,17 @@ public abstract class UsageReport_Base
         {
             final Instance instance = _parameter.getInstance();
             if (instance.getType().isKindOf(CIFabrication.ProcessAbstract.getType())) {
-                final QueryBuilder oAttrQueryBldr = new QueryBuilder(CISales.ProductionOrder);
-                oAttrQueryBldr.addWhereAttrNotEqValue(CISales.ProductionOrder.Status,
-                                Status.find(CISales.ProductionOrderStatus.Canceled));
+                final QueryBuilder oAttrQueryBldr = new QueryBuilder(CISales.UsageReport);
+                oAttrQueryBldr.addWhereAttrNotEqValue(CISales.UsageReport.Status,
+                                Status.find(CISales.UsageReportStatus.Canceled));
 
-                final QueryBuilder pAttrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionOrder);
-                pAttrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionOrder.FromLink, instance);
-                pAttrQueryBldr.addWhereAttrInQuery(CIFabrication.Process2ProductionOrder.ToLink,
-                                oAttrQueryBldr.getAttributeQuery(CISales.ProductionOrder.ID));
+                final QueryBuilder pAttrQueryBldr = new QueryBuilder(CIFabrication.Process2UsageReport);
+                pAttrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2UsageReport.FromLink, instance);
+                pAttrQueryBldr.addWhereAttrInQuery(CIFabrication.Process2UsageReport.ToLink,
+                                oAttrQueryBldr.getAttributeQuery(CISales.UsageReport.ID));
 
                 _queryBldr.addWhereAttrInQuery(CISales.PositionAbstract.DocumentAbstractLink,
-                                pAttrQueryBldr.getAttributeQuery(CIFabrication.Process2ProductionOrder.ToLink));
+                                pAttrQueryBldr.getAttributeQuery(CIFabrication.Process2UsageReport.ToLink));
             } else {
                 _queryBldr.addWhereAttrEqValue(CISales.PositionAbstract.DocumentAbstractLink, instance);
             }
@@ -246,13 +211,16 @@ public abstract class UsageReport_Base
             throws EFapsException
         {
             final TextColumnBuilder<String> nameColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProductionOrderReport.class.getName() + ".Column.ProdName"),
+                            .getProperty(UsageReport.class.getName() + ".Column.ProdName"),
                             "name", DynamicReports.type.stringType());
             final TextColumnBuilder<String> descColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProductionOrderReport.class.getName() + ".Column.ProdDescription"),
+                            .getProperty(UsageReport.class.getName() + ".Column.ProdDescription"),
                             "description", DynamicReports.type.stringType());
+            final TextColumnBuilder<String> uoMColumn = DynamicReports.col.column(DBProperties
+                            .getProperty(UsageReport.class.getName() + ".Column.UoM"),
+                            "uoM", DynamicReports.type.stringType());
             final TextColumnBuilder<BigDecimal> quantityColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProductionOrderReport.class.getName() + ".Column.ProdQuantity"),
+                            .getProperty(UsageReport.class.getName() + ".Column.ProdQuantity"),
                             "quantity", DynamicReports.type.bigDecimalType());
 
             final GenericElementBuilder linkElement = DynamicReports.cmp.genericElement(
@@ -260,31 +228,11 @@ public abstract class UsageReport_Base
                             .addParameter(EmbeddedLink.JASPER_PARAMETERKEY, new LinkExpression())
                             .setHeight(12).setWidth(25);
             final ComponentColumnBuilder linkColumn = DynamicReports.col.componentColumn(linkElement).setTitle("");
-            linkColumn.setPrintWhenExpression(new ShowLinkExpression());
             if (getExType().equals(ExportType.HTML)) {
                 _builder.addColumn(linkColumn);
             }
 
-            final SubreportBuilder subreport = DynamicReports.cmp
-                            .subreport(getSubreportDesign(_parameter, getExType()))
-                            .setDataSource(getSubreportDataSource(_parameter))
-                            .setStretchType(StretchType.RELATIVE_TO_BAND_HEIGHT)
-                            .setStyle(DynamicReports.stl.style().setBorder(DynamicReports.stl.pen1Point()));
-
-            final ComponentColumnBuilder bomColumn = DynamicReports.col.componentColumn(DBProperties
-                            .getProperty(ProductionOrderReport.class.getName() + ".Column.BOM"), subreport);
-
-            if (ExportType.PDF.equals(getExType())) {
-
-            } else if (ExportType.EXCEL.equals(getExType())) {
-
-            } else {
-                bomColumn.setWidth(500);
-                descColumn.setWidth(200);
-            }
-            _builder.fields(DynamicReports.field("bom", List.class))
-                .addColumn(quantityColumn, nameColumn, descColumn, bomColumn);
-
+            _builder.addColumn(quantityColumn, uoMColumn, nameColumn, descColumn);
         }
 
         protected TextFieldBuilder<String> getTitle(final Parameter _parameter,
@@ -299,32 +247,13 @@ public abstract class UsageReport_Base
          * @return new ProductBean
          * @throws EFapsException on error
          */
-        protected ProductBean getProductBean(final Parameter _parameter)
+        protected DataBean getBean(final Parameter _parameter)
             throws EFapsException
         {
-            return new ProductBean();
+            return new DataBean();
         }
 
-        /**
-         * @param _parameter Parameter as passed by the eFaps API
-         * @return new SubreportDataSource
-         * @throws EFapsException on error
-         */
-        protected SubreportDataSource getSubreportDataSource(final Parameter _parameter)
-        {
-            return new SubreportDataSource();
-        }
 
-        /**
-         * @param _parameter Parameter as passed by the eFaps API
-         * @return new SubreportDesign
-         * @throws EFapsException on error
-         */
-        protected SubreportDesign getSubreportDesign(final Parameter _parameter,
-                                                     final ExportType _exType)
-        {
-            return new SubreportDesign(_exType);
-        }
     }
 
     /**
@@ -356,105 +285,8 @@ public abstract class UsageReport_Base
         }
     }
 
-    public static class ShowLinkExpression
-        extends AbstractSimpleExpression<Boolean>
+    public static class DataBean
     {
-
-        /**
-         * Needed for serialization.
-         */
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public Boolean evaluate(final ReportParameters _reportParameters)
-        {
-            return Instance.get(_reportParameters.<String>getValue("oid")).isValid();
-        }
-    }
-
-    public static class SubreportDesign
-        extends AbstractSimpleExpression<JasperReportBuilder>
-    {
-
-        private static final long serialVersionUID = 1L;
-        private final ExportType exType;
-
-        public SubreportDesign(final ExportType _exType)
-        {
-            this.exType = _exType;
-        }
-
-        @Override
-        public JasperReportBuilder evaluate(final ReportParameters _reportParameters)
-        {
-            final TextColumnBuilder<String> matNameColumn = DynamicReports.col.column("matName",
-                            DynamicReports.type.stringType());
-            final TextColumnBuilder<String> matDescrColumn = DynamicReports.col.column("matDescription",
-                            DynamicReports.type.stringType());
-            final TextColumnBuilder<String> uomColumn = DynamicReports.col.column("uom",
-                            DynamicReports.type.stringType());
-            final TextColumnBuilder<BigDecimal> quantityColumn = DynamicReports.col.column("quantity",
-                            DynamicReports.type.bigDecimalType());
-            final JasperReportBuilder report = DynamicReports.report();
-            report.setShowColumnTitle(false);
-            report.addColumn(quantityColumn, uomColumn);
-
-            if (ExportType.PDF.equals(this.exType)) {
-                report.setColumnStyle(DynamicReports.stl.style().setPadding(DynamicReports.stl.padding(2))
-                                .setLeftBorder(DynamicReports.stl.pen1Point())
-                                .setRightBorder(DynamicReports.stl.pen1Point())
-                                .setBottomBorder(DynamicReports.stl.pen1Point())
-                                .setTopBorder(DynamicReports.stl.pen1Point()));
-
-
-            } else if (ExportType.EXCEL.equals(this.exType)) {
-
-            } else if (ExportType.HTML.equals(this.exType)) {
-                final GenericElementBuilder linkElement = DynamicReports.cmp.genericElement(
-                            "http://www.efaps.org", "efapslink")
-                            .addParameter(EmbeddedLink.JASPER_PARAMETERKEY, new LinkExpression())
-                            .setHeight(12).setWidth(25);
-                final ComponentColumnBuilder linkColumn = DynamicReports.col.componentColumn(linkElement).setTitle("");
-                linkColumn.setPrintWhenExpression(new ShowLinkExpression());
-                report.addColumn(linkColumn);
-                matDescrColumn.setWidth(100);
-                uomColumn.setWidth(10);
-            }
-
-            report.addColumn(matNameColumn, matDescrColumn);
-
-
-            return report;
-        }
-
-
-    }
-
-
-
-
-    public static class SubreportDataSource
-        extends AbstractSimpleExpression<JRDataSource>
-    {
-
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public JRDataSource evaluate(final ReportParameters reportParameters)
-        {
-
-            final List<BOMBean> datasource  = reportParameters.getValue("bom");
-            return new JRBeanCollectionDataSource(datasource);
-        }
-    }
-
-    public static class ProductBean
-    {
-        /**
-         * initialized.
-         */
-        private boolean initialized;
-
         private String name;
 
         private String description;
@@ -463,57 +295,40 @@ public abstract class UsageReport_Base
 
         private BigDecimal quantity = BigDecimal.ZERO;
 
-        private final List<BOMBean> bom = new ArrayList<BOMBean>();
+        private String uoM;
+
+
+        /**
+         * Getter method for the instance variable {@link #uoM}.
+         *
+         * @return value of instance variable {@link #uoM}
+         */
+        public String getUoM()
+        {
+            return this.uoM;
+        }
+
+
+
+
+        /**
+         * Setter method for instance variable {@link #uoM}.
+         *
+         * @param _uoM value for instance variable {@link #uoM}
+         */
+        public void setUoM(final String _uoM)
+        {
+            this.uoM = _uoM;
+        }
+
+
 
         public String getOid()
         {
             return this.instance == null ? null : this.instance.getOid();
         }
 
-        protected void initialize()
-            throws EFapsException
-        {
-            if (!this.initialized) {
-                final QueryBuilder queryBldr = new QueryBuilder(CIProducts.ProductionBOM);
-                queryBldr.addWhereAttrEqValue(CIProducts.ProductionBOM.From, getInstance());
-                final MultiPrintQuery multi = queryBldr.getPrint();
-                final SelectBuilder matSel = SelectBuilder.get().linkto(CIProducts.ProductionBOM.To);
-                final SelectBuilder matInstSel = new SelectBuilder(matSel).instance();
-                final SelectBuilder matNameSel = new SelectBuilder(matSel).attribute(CIProducts.ProductAbstract.Name);
-                final SelectBuilder matDescSel = new SelectBuilder(matSel)
-                                .attribute(CIProducts.ProductAbstract.Description);
-                final SelectBuilder matDimSel = new SelectBuilder(matSel)
-                                .attribute(CIProducts.ProductAbstract.Dimension);
-                multi.addSelect(matInstSel, matNameSel, matDescSel, matDimSel);
-                multi.addAttribute(CIProducts.ProductionBOM.Quantity);
-                multi.execute();
-                while (multi.next()) {
-                    final BOMBean bean = getBOMBean();
-                    this.bom.add(bean);
-                    bean.setMatInstance(multi.<Instance>getSelect(matInstSel));
-                    bean.setMatName(multi.<String>getSelect(matNameSel));
-                    bean.setMatDescription(multi.<String>getSelect(matDescSel));
-                    BigDecimal bomQuan = multi.<BigDecimal>getAttribute(CIProducts.ProductionBOM.Quantity);
-                    bomQuan = bomQuan.multiply(getQuantity());
-                    bean.setQuantity(bomQuan);
-                    bean.setUom(Dimension.get(multi.<Long>getSelect(matDimSel)).getBaseUoM().getName());
-                }
-                this.initialized = true;
-                Collections.sort(this.bom, new Comparator<BOMBean>(){
 
-                    @Override
-                    public int compare(final BOMBean _arg0,
-                                       final BOMBean _arg1)
-                    {
-                        return _arg0.getMatName().compareTo(_arg1.getMatName());
-                    }});
-
-            }
-        }
-
-        protected BOMBean getBOMBean() {
-            return new BOMBean();
-        }
 
         /**
          * Getter method for the instance variable {@link #quantity}.
@@ -609,21 +424,6 @@ public abstract class UsageReport_Base
             this.name = _name;
         }
 
-
-        /**
-         * Getter method for the instance variable {@link #bom}.
-         *
-         * @return value of instance variable {@link #bom}
-         */
-        public List<BOMBean> getBom() throws EFapsException
-        {
-            if (this.bom.isEmpty()) {
-                initialize();
-            }
-            return this.bom;
-        }
-
-
         @Override
         public String toString()
         {
@@ -632,130 +432,4 @@ public abstract class UsageReport_Base
     }
 
 
-    /**
-     * DataBean.
-     */
-    public static class BOMBean
-    {
-        private Instance matInstance;
-
-        private String matName;
-
-        private String matDescription;
-        private BigDecimal quantity;
-        private String uom;
-
-        /**
-         * Getter method for the instance variable {@link #matInstance}.
-         *
-         * @return value of instance variable {@link #matInstance}
-         */
-        public Instance getMatInstance()
-        {
-            return this.matInstance;
-        }
-
-
-        /**
-         * Setter method for instance variable {@link #matInstance}.
-         *
-         * @param _matInstance value for instance variable {@link #matInstance}
-         */
-        public void setMatInstance(final Instance _matInstance)
-        {
-            this.matInstance = _matInstance;
-        }
-
-
-        /**
-         * Getter method for the instance variable {@link #matName}.
-         *
-         * @return value of instance variable {@link #matName}
-         */
-        public String getMatName()
-        {
-            return this.matName;
-        }
-
-        /**
-         * Setter method for instance variable {@link #matName}.
-         *
-         * @param _matName value for instance variable {@link #matName}
-         */
-        public void setMatName(final String _matName)
-        {
-            this.matName = _matName;
-        }
-
-        /**
-         * Getter method for the instance variable {@link #matDescription}.
-         *
-         * @return value of instance variable {@link #matDescription}
-         */
-        public String getMatDescription()
-        {
-            return this.matDescription;
-        }
-
-        /**
-         * Setter method for instance variable {@link #matDescription}.
-         *
-         * @param _matDescription value for instance variable {@link #matDescription}
-         */
-        public void setMatDescription(final String _matDescription)
-        {
-            this.matDescription = _matDescription;
-        }
-
-        /**
-         * Getter method for the instance variable {@link #quantity}.
-         *
-         * @return value of instance variable {@link #quantity}
-         */
-        public BigDecimal getQuantity()
-        {
-            return this.quantity;
-        }
-
-        /**
-         * Setter method for instance variable {@link #quantity}.
-         *
-         * @param _quantity value for instance variable {@link #quantity}
-         */
-        public void setQuantity(final BigDecimal _quantity)
-        {
-            this.quantity = _quantity;
-        }
-
-        /**
-         * Getter method for the instance variable {@link #uom}.
-         *
-         * @return value of instance variable {@link #uom}
-         */
-        public String getUom()
-        {
-            return this.uom;
-        }
-
-        /**
-         * Setter method for instance variable {@link #uom}.
-         *
-         * @param _uom value for instance variable {@link #uom}
-         */
-        public void setUom(final String _uom)
-        {
-            this.uom = _uom;
-        }
-
-        public String getOid()
-        {
-            return this.matInstance == null ? null : this.matInstance.getOid();
-        }
-
-        @Override
-        public String toString()
-        {
-            return ToStringBuilder.reflectionToString(this);
-        }
-    }
 }

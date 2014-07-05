@@ -22,7 +22,6 @@ package org.efaps.esjp.fabrication.report;
 
 import org.efaps.admin.program.esjp.EFapsRevision;
 import org.efaps.admin.program.esjp.EFapsUUID;
-import org.efaps.esjp.sales.document.UsageReport_Base;
 
 /**
  * This class must be replaced for customization, therefore it is left empty.

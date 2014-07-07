@@ -45,6 +45,7 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.efaps.admin.datamodel.Dimension;
+import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.datamodel.Status;
 import org.efaps.admin.dbproperty.DBProperties;
 import org.efaps.admin.event.Parameter;
@@ -482,10 +483,8 @@ public abstract class ProductionOrderReport_Base
                 final SelectBuilder matNameSel = new SelectBuilder(matSel).attribute(CIProducts.ProductAbstract.Name);
                 final SelectBuilder matDescSel = new SelectBuilder(matSel)
                                 .attribute(CIProducts.ProductAbstract.Description);
-                final SelectBuilder matDimSel = new SelectBuilder(matSel)
-                                .attribute(CIProducts.ProductAbstract.Dimension);
-                multi.addSelect(matInstSel, matNameSel, matDescSel, matDimSel);
-                multi.addAttribute(CIProducts.ProductionBOM.Quantity);
+                multi.addSelect(matInstSel, matNameSel, matDescSel);
+                multi.addAttribute(CIProducts.ProductionBOM.Quantity, CIProducts.ProductionBOM.UoM);
                 multi.execute();
                 while (multi.next()) {
                     final BOMBean bean = getBOMBean();
@@ -493,13 +492,18 @@ public abstract class ProductionOrderReport_Base
                     bean.setMatInstance(multi.<Instance>getSelect(matInstSel));
                     bean.setMatName(multi.<String>getSelect(matNameSel));
                     bean.setMatDescription(multi.<String>getSelect(matDescSel));
+                    final UoM uom = Dimension.getUoM(multi.<Long>getAttribute(CIProducts.ProductionBOM.UoM));
+
                     BigDecimal bomQuan = multi.<BigDecimal>getAttribute(CIProducts.ProductionBOM.Quantity);
-                    bomQuan = bomQuan.multiply(getQuantity());
+
+                    bomQuan = bomQuan.setScale(8, BigDecimal.ROUND_HALF_UP)
+                                    .multiply(new BigDecimal(uom.getNumerator()))
+                                    .divide(new BigDecimal(uom.getDenominator())).multiply(getQuantity());
                     bean.setQuantity(bomQuan);
-                    bean.setUom(Dimension.get(multi.<Long>getSelect(matDimSel)).getBaseUoM().getName());
+                    bean.setUom(uom.getDimension().getBaseUoM().getName());
                 }
                 this.initialized = true;
-                Collections.sort(this.bom, new Comparator<BOMBean>(){
+                Collections.sort(this.bom, new Comparator<BOMBean>() {
 
                     @Override
                     public int compare(final BOMBean _arg0,

@@ -31,6 +31,7 @@
         <childs>
             <child>Fabrication_ProcessTree_UsageReport_Menu_DownloadExcel</child>
             <child>Fabrication_ProcessTree_UsageReport_Menu_DownloadPDF</child>
+            <child>Fabrication_ProcessTree_UsageReport_Menu_CreateUsageReport</child>
         </childs>
     </definition>
 </ui-menu>

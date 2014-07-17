@@ -19,34 +19,28 @@
  Last Changed:    $Date$
  Last Changed By: $Author$
 
--->
-<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>0804f543-8755-49c2-af7d-6250edb6199c</uuid>
+--><ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+    <uuid>b7583f9f-5ff6-4b28-bd76-6a26c26ad984</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_ProcessMyDesk_Menu_Action_Create</name>
-        <access>
-            <role>Fabrication_Admin</role>
-            <role>Fabrication_Modifier</role>
-        </access>
+        <name>Fabrication_ProcessTree_UsageReport_Menu_CreateUsageReport</name>
         <target>
-            <form>Fabrication_ProcessForm</form>
-            <execute method="create" program="org.efaps.esjp.fabrication.Process">
+            <form>Sales_UsageReportForm</form>
+            <execute method="createUsageReport" program="org.efaps.esjp.fabrication.Process">
                 <property name="UseNumberGenerator4Name">true</property>
-                <property name="StatusGroup">Fabrication_ProcessStatus</property>
-                <property name="Status">Open</property>
-                <!-- Fabrication_Process2ProductionOrder -->
-                <property name="ConnectType">fc3b7b99-c083-4d95-b97f-67c3eec5963d</property>
-                <property name="ConnectCurrentLink">FromLink</property>
-                <property name="ConnectForeignLink">ToLink</property>
-                <property name="ConnectForeignField">productionOrder</property>
             </execute>
+            <validate program="org.efaps.esjp.fabrication.Process" method="validate" />
         </target>
+
+        <!-- properties -->
         <property name="Target">modal</property>
-        <property name="TargetCreateType">Fabrication_Process</property>
+        <property name="TargetCreateType">Sales_UsageReport</property>
         <property name="TargetMode">create</property>
+        <property name="WindowHeight">660</property>
+        <property name="WindowWidth">1200</property>
+        <property name="TargetDefaultMenu">none</property>
+        <property name="ShowStorage">true</property>
     </definition>
 </ui-command>

@@ -52,6 +52,22 @@
             <property name="Attribute">Name</property>
             <property name="Required">true</property>
         </field>
+        <field name="productionOrder">
+            <property name="Label">Sales_ProductionOrder.Label</property>
+            <property name="ModeCreate">EDITABLE</property>
+            <property name="Required">true</property>
+            <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
+            <trigger program="org.efaps.esjp.sales.document.ProductionOrder"
+                     method="autoComplete4Doc"
+                     name="Fabrication_ProcessForm/productionOrder.UI_FIELD_AUTOCOMPLETE"
+                     event="UI_FIELD_AUTOCOMPLETE">
+                <property name="Type">Sales_ProductionOrder</property>
+            </trigger>
+            <trigger program="org.efaps.esjp.sales.document.ProductionOrder"
+                     method="updateFields4Document"
+                     name="Fabrication_ProcessForm/productionOrder.UI_FIELD_UPDATE"
+                     event="UI_FIELD_UPDATE" />
+        </field>
         <field name="description">
             <property name="Attribute">Description</property>
             <property name="Columns">60</property>

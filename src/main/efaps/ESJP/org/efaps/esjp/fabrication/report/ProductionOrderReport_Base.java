@@ -209,7 +209,7 @@ public abstract class ProductionOrderReport_Base
             datasource.add(subBean);
             subBean.setQuantity(null);
             subBean.setName("-");
-            subBean.setDescription("Summa");
+            subBean.setDescription("Suma");
             subBean.bom.addAll(inst2bom.values());
             return new JRBeanCollectionDataSource(datasource);
         }
@@ -501,6 +501,7 @@ public abstract class ProductionOrderReport_Base
                                     .divide(new BigDecimal(uom.getDenominator())).multiply(getQuantity());
                     bean.setQuantity(bomQuan);
                     bean.setUom(uom.getDimension().getBaseUoM().getName());
+                    bean.setUomID(uom.getDimension().getBaseUoM().getId());
                 }
                 this.initialized = true;
                 Collections.sort(this.bom, new Comparator<BOMBean>() {
@@ -648,6 +649,7 @@ public abstract class ProductionOrderReport_Base
         private String matDescription;
         private BigDecimal quantity;
         private String uom;
+        private Long uomID;
 
         /**
          * Getter method for the instance variable {@link #matInstance}.
@@ -760,6 +762,28 @@ public abstract class ProductionOrderReport_Base
         public String toString()
         {
             return ToStringBuilder.reflectionToString(this);
+        }
+
+
+        /**
+         * Getter method for the instance variable {@link #uomID}.
+         *
+         * @return value of instance variable {@link #uomID}
+         */
+        public Long getUomID()
+        {
+            return this.uomID;
+        }
+
+
+        /**
+         * Setter method for instance variable {@link #uomID}.
+         *
+         * @param _uomID value for instance variable {@link #uomID}
+         */
+        public void setUomID(Long _uomID)
+        {
+            this.uomID = _uomID;
         }
     }
 }

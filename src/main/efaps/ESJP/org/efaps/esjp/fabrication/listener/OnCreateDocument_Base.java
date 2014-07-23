@@ -105,12 +105,14 @@ public abstract class OnCreateDocument_Base
 
         for (BOMBean mat : ins2map.values()) {
             final Map<String, Object> map = new HashMap<String, Object>();
+            final StringBuilder jsUoM = new StringBuilder("new Array('").append(mat.getUomID()).append("','").
+                            append(mat.getUomID()).append("','").append(mat.getUom()).append("')");
             map.put(CITableSales.Sales_UsageReportPositionTable.quantity.name, qtyFrmt.format(mat.getQuantity()));
             map.put(CITableSales.Sales_UsageReportPositionTable.product.name, new String[] {
                             mat.getMatInstance().getOid(),
                             mat.getMatName() });
             map.put(CITableSales.Sales_UsageReportPositionTable.productDesc.name, mat.getMatDescription());
-            map.put(CITableSales.Sales_UsageReportPositionTable.uoM.name, getUoMFieldStrByUoM(mat.getUomID()));
+            map.put(CITableSales.Sales_UsageReportPositionTable.uoM.name, jsUoM);
             map.put(CITableSales.Sales_UsageReportPositionTable.quantityInStock.name,
                             getStock4ProductInStorage(_parameter, mat.getMatInstance(), Instance.get(storage)));
             uomID = String.valueOf(mat.getUomID());
@@ -122,9 +124,7 @@ public abstract class OnCreateDocument_Base
         final StringBuilder readOnlyFields = getSetFieldReadOnlyScript(_parameter,
                         CITableSales.Sales_UsageReportPositionTable.quantity.name,
                         CITableSales.Sales_UsageReportPositionTable.product.name,
-                        CITableSales.Sales_UsageReportPositionTable.productDesc.name)
-                        .append(getSetDropDownScript(_parameter, CITableSales.Sales_UsageReportPositionTable.uoM.name,
-                                        uomID));
+                        CITableSales.Sales_UsageReportPositionTable.productDesc.name);
         js.append(getTableRemoveScript(_parameter, "positionTable", false, false))
                         .append(getTableAddNewRowsScript(_parameter, "positionTable", values,
                                         readOnlyFields, false, false, noEscape));

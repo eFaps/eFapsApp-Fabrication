@@ -21,13 +21,28 @@
 
 package org.efaps.esjp.fabrication.listener;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.program.esjp.EFapsRevision;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.db.Instance;
+import org.efaps.esjp.ci.CIFormFabrication;
 import org.efaps.esjp.ci.CISales;
+import org.efaps.esjp.ci.CITableSales;
 import org.efaps.esjp.common.listener.ITypedClass;
 import org.efaps.esjp.erp.CommonDocument;
+import org.efaps.esjp.erp.NumberFormatter;
 import org.efaps.esjp.erp.listener.IOnCreateDocument;
+import org.efaps.esjp.fabrication.Process;
+import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
+import org.efaps.esjp.sales.document.UsageReport;
 import org.efaps.util.EFapsException;
 
 
@@ -76,9 +91,37 @@ public abstract class OnCreateDocument_Base
         throws EFapsException
     {
         final StringBuilder js = new StringBuilder();
+        final String storage = _parameter
+                        .getParameterValue(CIFormFabrication.Fabrication_ProcessTree_CreateUsageReportForm.storage.name);
+        final Map<Instance, BOMBean> ins2map = new Process().getInstance2BOMMap(_parameter);
+        final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
+        String uomID = null;
+        final List<Map<String, Object>> values = new ArrayList<Map<String, Object>>();
 
-        return null;
+        for(BOMBean mat : ins2map.values()) {
+            final Map<String, Object> map = new HashMap<String, Object>();
+            map.put(CITableSales.Sales_UsageReportPositionTable.quantity.name, qtyFrmt.format(mat.getQuantity()));
+            map.put(CITableSales.Sales_UsageReportPositionTable.product.name, new String[] { mat.getMatInstance().getOid(),
+                            mat.getMatName() });
+            map.put(CITableSales.Sales_UsageReportPositionTable.productDesc.name, mat.getMatDescription());
+            map.put(CITableSales.Sales_UsageReportPositionTable.uoM.name, getUoMFieldStrByUoM(mat.getUomID()));
+            map.put(CITableSales.Sales_UsageReportPositionTable.quantityInStock.name, getStock4ProductInStorage(_parameter, mat.getMatInstance(), Instance.get(storage)));
+            uomID = String.valueOf(mat.getUomID());
+            values.add(map);
+        }
+        final Set<String> noEscape = new HashSet<String>();
+        noEscape.add("uoM");
 
+        final StringBuilder readOnlyFields = getSetFieldReadOnlyScript(_parameter, CITableSales.Sales_UsageReportPositionTable.quantity.name,
+                        CITableSales.Sales_UsageReportPositionTable.product.name,
+                        CITableSales.Sales_UsageReportPositionTable.productDesc.name)
+                        .append(getSetDropDownScript(_parameter, CITableSales.Sales_UsageReportPositionTable.uoM.name, uomID));
+        js.append(getTableRemoveScript(_parameter, "positionTable", false, false))
+                            .append(getTableAddNewRowsScript(_parameter, "positionTable", values,
+                                            readOnlyFields, false, false, noEscape));
+
+
+        return js;
     }
 
     @Override
@@ -86,4 +129,28 @@ public abstract class OnCreateDocument_Base
     {
         return 0;
     }
+
+    protected String getStock4ProductInStorage(final Parameter _parameter,
+                                               final Instance _productinst,
+                                               final Instance _storageInst)
+        throws EFapsException
+    {
+        return new Clase().getStock4ProductInStorage(_parameter, _productinst, _storageInst);
+
+    }
+
+    public class Clase
+        extends UsageReport
+    {
+        @Override
+        protected String getStock4ProductInStorage(final Parameter _parameter,
+                                                   final Instance _productinst,
+                                                   final Instance _storageInst)
+            throws EFapsException
+        {
+            return super.getStock4ProductInStorage(_parameter, _productinst, _storageInst);
+        }
+
+    }
+
 }

@@ -20,20 +20,26 @@
  Last Changed By: $Author$
 
 --><ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>b7583f9f-5ff6-4b28-bd76-6a26c26ad984</uuid>
+    <uuid>0ba2f191-b0ac-46d6-a836-a20149a6f8c1</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_ProcessTree_UsageReport_Menu_CreateUsageReport</name>
-
+        <name>Fabrication_ProcessTree_UsageReport_Menu_CreateUsageReport2</name>
         <target>
-            <form>Fabrication_ProcessTree_CreateUsageReportForm</form>
-            <command>Fabrication_ProcessTree_UsageReport_Menu_CreateUsageReport2</command>
+            <form>Sales_UsageReportForm</form>
+            <execute method="createUsageReport" program="org.efaps.esjp.fabrication.Process">
+                <property name="UseNumberGenerator4Name">true</property>
+            </execute>
+            <validate program="org.efaps.esjp.sales.document.UsageReport" method="validate">
+                <property name="Validation01">QUANTITYGREATERZERO</property>
+                <property name="Validation02">QUANTITYINSTOCK</property>
+            </validate>
         </target>
 
         <!-- properties -->
         <property name="Target">modal</property>
+        <property name="TargetCreateType">Sales_UsageReport</property>
         <property name="TargetMode">create</property>
         <property name="WindowHeight">660</property>
         <property name="WindowWidth">1200</property>

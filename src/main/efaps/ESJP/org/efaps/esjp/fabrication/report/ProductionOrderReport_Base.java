@@ -502,6 +502,7 @@ public abstract class ProductionOrderReport_Base
                     bean.setQuantity(bomQuan);
                     bean.setUom(uom.getDimension().getBaseUoM().getName());
                     bean.setUomID(uom.getDimension().getBaseUoM().getId());
+                    bean.setDimension(uom.getDimension());
                 }
                 this.initialized = true;
                 Collections.sort(this.bom, new Comparator<BOMBean>() {
@@ -650,6 +651,7 @@ public abstract class ProductionOrderReport_Base
         private BigDecimal quantity;
         private String uom;
         private Long uomID;
+        private Dimension dimension;
 
         /**
          * Getter method for the instance variable {@link #matInstance}.
@@ -762,6 +764,27 @@ public abstract class ProductionOrderReport_Base
         public String toString()
         {
             return ToStringBuilder.reflectionToString(this);
+        }
+
+
+        /**
+         * Getter method for the instance variable {@link #dimension}.
+         *
+         * @return value of instance variable {@link #dimension}
+         */
+        public Dimension getDimension()
+        {
+            return this.dimension;
+        }
+
+        /**
+         * Setter method for instance variable {@link #dimension}.
+         *
+         * @param _dimension value for instance variable {@link #dimension}
+         */
+        public void setDimension(Dimension _dimension)
+        {
+            this.dimension = _dimension;
         }
 
 

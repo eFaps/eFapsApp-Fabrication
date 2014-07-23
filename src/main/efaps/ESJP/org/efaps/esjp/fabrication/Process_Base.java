@@ -22,7 +22,6 @@
 package org.efaps.esjp.fabrication;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,19 +37,13 @@ import org.efaps.db.MultiPrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
 import org.efaps.esjp.ci.CIFabrication;
-import org.efaps.esjp.ci.CIFormFabrication;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.uiform.Create;
 import org.efaps.esjp.erp.CommonDocument;
-import org.efaps.esjp.erp.IWarning;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.ProductBean;
 import org.efaps.esjp.products.Storage;
-import org.efaps.esjp.products.util.Products;
-import org.efaps.esjp.products.util.ProductsSettings;
-import org.efaps.esjp.sales.document.Validation;
-import org.efaps.esjp.sales.document.Validation_Base.NotEnoughStockWarning;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
 
@@ -117,10 +110,14 @@ public abstract class Process_Base
             insPos.add(CISales.UsageReportPosition.UoM, bom.getUomID());
             insPos.execute();
         }
+        final Insert insert2 = new Insert(CIFabrication.Process2UsageReport);
+        insert2.add(CIFabrication.Process2UsageReport.FromLink, _parameter.getInstance());
+        insert2.add(CIFabrication.Process2UsageReport.ToLink, insert.getInstance());
+        insert2.execute();
         return ret;
     }
 
-    private Map<Instance, BOMBean> getInstance2BOMMap(final Parameter _parameter)
+    public Map<Instance, BOMBean> getInstance2BOMMap(final Parameter _parameter)
         throws EFapsException
     {
         final Instance instance = _parameter.getInstance();
@@ -180,6 +177,7 @@ public abstract class Process_Base
                     beanTmp.setQuantity(bean.getQuantity());
                     beanTmp.setUom(bean.getUom());
                     beanTmp.setUomID(bean.getUomID());
+                    beanTmp.setDimension(bean.getDimension());
                 }
             }
         }
@@ -193,66 +191,4 @@ public abstract class Process_Base
         return storage.autoComplete4Storage(_parameter);
     }
 
-    public Return validate(final Parameter _parameter)
-        throws EFapsException
-    {
-        final Validation validation = new Validation()
-        {
-
-            @Override
-            protected List<IWarning> validate(final Parameter _parameter,
-                                              final List<IWarning> _warnings)
-                throws EFapsException
-            {
-                final List<IWarning> ret = super.validate(_parameter, _warnings);
-                ret.addAll(validateUsageReport(_parameter, ret));
-                return ret;
-            }
-        };
-        return validation.validate(_parameter, null);
-    }
-
-    public List<IWarning> validateUsageReport(final Parameter _parameter,
-                                            final List<IWarning> _ret)
-        throws EFapsException
-    {
-        final List<IWarning> ret = new ArrayList<IWarning>();
-        final String storage = _parameter
-                        .getParameterValue(CIFormFabrication.Fabrication_ProcessTree_CreateUsageReportForm.storage.name);
-        final Map<Instance, BOMBean> inst2bom = getInstance2BOMMap(_parameter);
-        int i = 0;
-        for(Instance matIns : inst2bom.keySet()) {
-            BigDecimal currQuantity = BigDecimal.ZERO;
-            final QueryBuilder queryBldr = new QueryBuilder(CIProducts.InventoryAbstract);
-            queryBldr.addWhereAttrEqValue(CIProducts.InventoryAbstract.Product, matIns);
-            if (storage != null && !storage.isEmpty()) {
-                queryBldr.addWhereAttrEqValue(CIProducts.InventoryAbstract.Storage, Instance.get(storage));
-            } else if ("true".equalsIgnoreCase(getProperty(_parameter, "QUANTITYINSTOCK_UseDefaultWareHouse"))) {
-                final Instance wareHInst = Products.getSysConfig().getLink(ProductsSettings.DEFAULTWAREHOUSE);
-                if (wareHInst != null && wareHInst.isValid()) {
-                    queryBldr.addWhereAttrEqValue(CIProducts.InventoryAbstract.Storage, wareHInst);
-                }
-            }
-
-            final MultiPrintQuery multi = queryBldr.getPrint();
-            multi.addAttribute(CIProducts.InventoryAbstract.Quantity,
-                            CIProducts.InventoryAbstract.Reserved);
-            multi.execute();
-            while (multi.next()) {
-                currQuantity = currQuantity.add(multi
-                                .<BigDecimal>getAttribute(CIProducts.InventoryAbstract.Quantity));
-                currQuantity = currQuantity.add(multi
-                                .<BigDecimal>getAttribute(CIProducts.InventoryAbstract.Reserved));
-            }
-
-            BigDecimal quantity = inst2bom.get(matIns).getQuantity();
-
-            if (quantity.compareTo(currQuantity) > 0) {
-                ret.add(new NotEnoughStockWarning().setPosition(i + 1));
-            }
-            i++;
-        }
-
-        return ret;
-    }
 }

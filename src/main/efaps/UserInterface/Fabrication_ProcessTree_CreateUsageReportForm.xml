@@ -30,6 +30,7 @@
              <property name="ModeCreate">EDITABLE</property>
              <property name="ModeView">NONE</property>
              <property name="ModeEdit">NONE</property>
+             <property name="Required">true</property>
              <property name="Label">Fabrication_ProcessTree_CreateUsageReportForm.storage.Label</property>
              <trigger program="org.efaps.esjp.fabrication.Process"
                 method="autoComplete4Storage"

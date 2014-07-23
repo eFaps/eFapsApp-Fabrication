@@ -18,7 +18,6 @@
  * Last Changed By: $Author$
  */
 
-
 package org.efaps.esjp.fabrication.listener;
 
 import java.text.DecimalFormat;
@@ -45,12 +44,12 @@ import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
 import org.efaps.esjp.sales.document.UsageReport;
 import org.efaps.util.EFapsException;
 
-
 /**
  * TODO comment!
  *
  * @author The eFaps Team
- * @version $Id$
+ * @version $Id: OnCreateDocument_Base.java 13395 2014-07-23 16:30:34Z
+ *          luis.moreyra@efaps.org $
  */
 @EFapsUUID("da56cbac-c191-4d9f-9c12-ffab92c8eefb")
 @EFapsRevision("$Rev$")
@@ -59,8 +58,11 @@ public abstract class OnCreateDocument_Base
     implements IOnCreateDocument
 {
 
-    /* (non-Javadoc)
-     * @see org.efaps.esjp.erp.listener.IOnCreateDocument#afterCreate(org.efaps.admin.event.Parameter, org.efaps.esjp.erp.CommonDocument_Base.CreatedDoc)
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.efaps.esjp.erp.listener.IOnCreateDocument#afterCreate(org.efaps.admin
+     * .event.Parameter, org.efaps.esjp.erp.CommonDocument_Base.CreatedDoc)
      */
     @Override
     public void afterCreate(Parameter _parameter,
@@ -70,8 +72,11 @@ public abstract class OnCreateDocument_Base
         // not used
     }
 
-    /* (non-Javadoc)
-     * @see org.efaps.esjp.erp.listener.IOnCreateDocument#getJavaScript4Doc(org.efaps.esjp.common.listener.ITypedClass, org.efaps.admin.event.Parameter)
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.efaps.esjp.erp.listener.IOnCreateDocument#getJavaScript4Doc(org.efaps
+     * .esjp.common.listener.ITypedClass, org.efaps.admin.event.Parameter)
      */
     @Override
     public CharSequence getJavaScript4Doc(ITypedClass _typeClass,
@@ -79,8 +84,8 @@ public abstract class OnCreateDocument_Base
         throws EFapsException
     {
         CharSequence ret = new String();
-        if(_typeClass != null){
-            if(CISales.UsageReport.equals(_typeClass.getCIType())){
+        if (_typeClass != null) {
+            if (CISales.UsageReport.equals(_typeClass.getCIType())) {
                 ret = getJavaScript4UsageReport(_parameter);
             }
         }
@@ -98,28 +103,31 @@ public abstract class OnCreateDocument_Base
         String uomID = null;
         final List<Map<String, Object>> values = new ArrayList<Map<String, Object>>();
 
-        for(BOMBean mat : ins2map.values()) {
+        for (BOMBean mat : ins2map.values()) {
             final Map<String, Object> map = new HashMap<String, Object>();
             map.put(CITableSales.Sales_UsageReportPositionTable.quantity.name, qtyFrmt.format(mat.getQuantity()));
-            map.put(CITableSales.Sales_UsageReportPositionTable.product.name, new String[] { mat.getMatInstance().getOid(),
+            map.put(CITableSales.Sales_UsageReportPositionTable.product.name, new String[] {
+                            mat.getMatInstance().getOid(),
                             mat.getMatName() });
             map.put(CITableSales.Sales_UsageReportPositionTable.productDesc.name, mat.getMatDescription());
             map.put(CITableSales.Sales_UsageReportPositionTable.uoM.name, getUoMFieldStrByUoM(mat.getUomID()));
-            map.put(CITableSales.Sales_UsageReportPositionTable.quantityInStock.name, getStock4ProductInStorage(_parameter, mat.getMatInstance(), Instance.get(storage)));
+            map.put(CITableSales.Sales_UsageReportPositionTable.quantityInStock.name,
+                            getStock4ProductInStorage(_parameter, mat.getMatInstance(), Instance.get(storage)));
             uomID = String.valueOf(mat.getUomID());
             values.add(map);
         }
         final Set<String> noEscape = new HashSet<String>();
         noEscape.add("uoM");
 
-        final StringBuilder readOnlyFields = getSetFieldReadOnlyScript(_parameter, CITableSales.Sales_UsageReportPositionTable.quantity.name,
+        final StringBuilder readOnlyFields = getSetFieldReadOnlyScript(_parameter,
+                        CITableSales.Sales_UsageReportPositionTable.quantity.name,
                         CITableSales.Sales_UsageReportPositionTable.product.name,
                         CITableSales.Sales_UsageReportPositionTable.productDesc.name)
-                        .append(getSetDropDownScript(_parameter, CITableSales.Sales_UsageReportPositionTable.uoM.name, uomID));
+                        .append(getSetDropDownScript(_parameter, CITableSales.Sales_UsageReportPositionTable.uoM.name,
+                                        uomID));
         js.append(getTableRemoveScript(_parameter, "positionTable", false, false))
-                            .append(getTableAddNewRowsScript(_parameter, "positionTable", values,
-                                            readOnlyFields, false, false, noEscape));
-
+                        .append(getTableAddNewRowsScript(_parameter, "positionTable", values,
+                                        readOnlyFields, false, false, noEscape));
 
         return js;
     }
@@ -142,6 +150,7 @@ public abstract class OnCreateDocument_Base
     public class Clase
         extends UsageReport
     {
+
         @Override
         protected String getStock4ProductInStorage(final Parameter _parameter,
                                                    final Instance _productinst,

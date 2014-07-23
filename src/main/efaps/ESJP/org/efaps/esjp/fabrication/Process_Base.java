@@ -18,7 +18,6 @@
  * Last Changed By: $Author$
  */
 
-
 package org.efaps.esjp.fabrication;
 
 import java.math.BigDecimal;
@@ -47,12 +46,12 @@ import org.efaps.esjp.products.Storage;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
 
-
 /**
  * TODO comment!
  *
  * @author The eFaps Team
- * @version $Id$
+ * @version $Id: Process_Base.java 13395 2014-07-23 16:30:34Z
+ *          luis.moreyra@efaps.org $
  */
 @EFapsUUID("110c1dbe-6c62-418a-9385-e12bada57e13")
 @EFapsRevision("$Rev$")
@@ -65,6 +64,7 @@ public abstract class Process_Base
     {
         final Create create = new Create()
         {
+
             @Override
             protected void add2basicInsert(final Parameter _parameter,
                                            final Insert _insert)
@@ -100,7 +100,7 @@ public abstract class Process_Base
         insert.add(CISales.UsageReport.Status, Status.find(CISales.UsageReportStatus.Open));
         insert.execute();
         int i = 0;
-        for(BOMBean bom : inst2bom.values()) {
+        for (BOMBean bom : inst2bom.values()) {
             final Insert insPos = new Insert(CISales.UsageReportPosition);
             insPos.add(CISales.UsageReportPosition.PositionNumber, i++);
             insPos.add(CISales.UsageReportPosition.DocumentAbstractLink, insert.getInstance());

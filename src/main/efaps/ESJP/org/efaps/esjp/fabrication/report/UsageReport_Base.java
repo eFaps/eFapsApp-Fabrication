@@ -57,7 +57,6 @@ import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
 import org.efaps.esjp.common.jasperreport.AbstractDynamicReport;
-import org.efaps.esjp.sales.report.ProfServReceiptReport;
 import org.efaps.ui.wicket.models.EmbeddedLink;
 import org.efaps.util.EFapsException;
 import org.slf4j.Logger;
@@ -78,7 +77,7 @@ public abstract class UsageReport_Base
     /**
      * Logging instance used in this class.
      */
-    protected static final Logger LOG = LoggerFactory.getLogger(ProductionOrderReport.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(UsageReport.class);
 
     /**
      * @param _parameter Parameter as passed by the eFasp API
@@ -107,7 +106,7 @@ public abstract class UsageReport_Base
         final Map<?, ?> props = (Map<?, ?>) _parameter.get(ParameterValues.PROPERTIES);
         final String mime = (String) props.get("Mime");
         final AbstractDynamicReport dyRp = getReport(_parameter);
-        dyRp.setFileName(DBProperties.getProperty(ProfServReceiptReport.class.getName() + ".FileName"));
+        dyRp.setFileName(DBProperties.getProperty(UsageReport.class.getName() + ".FileName"));
         File file = null;
         if ("xls".equalsIgnoreCase(mime)) {
             file = dyRp.getExcel(_parameter);
@@ -297,7 +296,6 @@ public abstract class UsageReport_Base
 
         private String uoM;
 
-
         /**
          * Getter method for the instance variable {@link #uoM}.
          *
@@ -307,9 +305,6 @@ public abstract class UsageReport_Base
         {
             return this.uoM;
         }
-
-
-
 
         /**
          * Setter method for instance variable {@link #uoM}.
@@ -321,14 +316,10 @@ public abstract class UsageReport_Base
             this.uoM = _uoM;
         }
 
-
-
         public String getOid()
         {
             return this.instance == null ? null : this.instance.getOid();
         }
-
-
 
         /**
          * Getter method for the instance variable {@link #quantity}.
@@ -401,7 +392,6 @@ public abstract class UsageReport_Base
             this.instance = _oid;
         }
 
-
         /**
          * Getter method for the instance variable {@link #name}.
          *
@@ -411,8 +401,6 @@ public abstract class UsageReport_Base
         {
             return this.name;
         }
-
-
 
         /**
          * Setter method for instance variable {@link #name}.
@@ -430,6 +418,4 @@ public abstract class UsageReport_Base
             return ToStringBuilder.reflectionToString(this);
         }
     }
-
-
 }

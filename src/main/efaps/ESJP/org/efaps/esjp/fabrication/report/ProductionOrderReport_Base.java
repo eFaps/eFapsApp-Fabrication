@@ -64,7 +64,6 @@ import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
 import org.efaps.esjp.common.jasperreport.AbstractDynamicReport;
 import org.efaps.esjp.common.jasperreport.AbstractDynamicReport_Base.ExportType;
-import org.efaps.esjp.sales.report.ProfServReceiptReport;
 import org.efaps.ui.wicket.models.EmbeddedLink;
 import org.efaps.util.EFapsException;
 import org.slf4j.Logger;
@@ -114,7 +113,7 @@ public abstract class ProductionOrderReport_Base
         final Map<?, ?> props = (Map<?, ?>) _parameter.get(ParameterValues.PROPERTIES);
         final String mime = (String) props.get("Mime");
         final AbstractDynamicReport dyRp = getReport(_parameter);
-        dyRp.setFileName(DBProperties.getProperty(ProfServReceiptReport.class.getName() + ".FileName"));
+        dyRp.setFileName(DBProperties.getProperty(ProductionOrderReport.class.getName() + ".FileName"));
         File file = null;
         if ("xls".equalsIgnoreCase(mime)) {
             file = dyRp.getExcel(_parameter);
@@ -407,7 +406,6 @@ public abstract class ProductionOrderReport_Base
                                 .setBottomBorder(DynamicReports.stl.pen1Point())
                                 .setTopBorder(DynamicReports.stl.pen1Point()));
 
-
             } else if (ExportType.EXCEL.equals(this.exType)) {
 
             } else if (ExportType.HTML.equals(this.exType)) {
@@ -421,18 +419,10 @@ public abstract class ProductionOrderReport_Base
                 matDescrColumn.setWidth(100);
                 uomColumn.setWidth(10);
             }
-
             report.addColumn(matNameColumn, matDescrColumn);
-
-
             return report;
         }
-
-
     }
-
-
-
 
     public static class SubreportDataSource
         extends AbstractSimpleExpression<JRDataSource>
@@ -443,7 +433,6 @@ public abstract class ProductionOrderReport_Base
         @Override
         public JRDataSource evaluate(final ReportParameters reportParameters)
         {
-
             final List<BOMBean> datasource  = reportParameters.getValue("bom");
             return new JRBeanCollectionDataSource(datasource);
         }
@@ -559,9 +548,6 @@ public abstract class ProductionOrderReport_Base
             return this.description;
         }
 
-
-
-
         /**
          * Setter method for instance variable {@link #description}.
          *
@@ -592,7 +578,6 @@ public abstract class ProductionOrderReport_Base
             this.instance = _oid;
         }
 
-
         /**
          * Getter method for the instance variable {@link #name}.
          *
@@ -603,8 +588,6 @@ public abstract class ProductionOrderReport_Base
             return this.name;
         }
 
-
-
         /**
          * Setter method for instance variable {@link #name}.
          *
@@ -614,7 +597,6 @@ public abstract class ProductionOrderReport_Base
         {
             this.name = _name;
         }
-
 
         /**
          * Getter method for the instance variable {@link #bom}.
@@ -663,7 +645,6 @@ public abstract class ProductionOrderReport_Base
             return this.matInstance;
         }
 
-
         /**
          * Setter method for instance variable {@link #matInstance}.
          *
@@ -673,7 +654,6 @@ public abstract class ProductionOrderReport_Base
         {
             this.matInstance = _matInstance;
         }
-
 
         /**
          * Getter method for the instance variable {@link #matName}.
@@ -782,11 +762,10 @@ public abstract class ProductionOrderReport_Base
          *
          * @param _dimension value for instance variable {@link #dimension}
          */
-        public void setDimension(Dimension _dimension)
+        public void setDimension(final Dimension _dimension)
         {
             this.dimension = _dimension;
         }
-
 
         /**
          * Getter method for the instance variable {@link #uomID}.
@@ -798,13 +777,12 @@ public abstract class ProductionOrderReport_Base
             return this.uomID;
         }
 
-
         /**
          * Setter method for instance variable {@link #uomID}.
          *
          * @param _uomID value for instance variable {@link #uomID}
          */
-        public void setUomID(Long _uomID)
+        public void setUomID(final Long _uomID)
         {
             this.uomID = _uomID;
         }

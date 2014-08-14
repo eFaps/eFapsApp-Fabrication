@@ -19,7 +19,9 @@
   Last Changed:    $Date$
   Last Changed By: $Author$
 
---><ui-form xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+-->
+<ui-form xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
     <uuid>cce36162-515f-483e-9758-472a014ececb</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
@@ -32,6 +34,7 @@
              <property name="ModeEdit">NONE</property>
              <property name="Required">true</property>
              <property name="Label">Fabrication_ProcessTree_CreateUsageReportForm.storage.Label</property>
+             <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
              <trigger program="org.efaps.esjp.fabrication.Process"
                 method="autoComplete4Storage"
                 name="Sales_DeliveryNoteForm.storage.UI_FIELD_AUTOCOMPLETE"

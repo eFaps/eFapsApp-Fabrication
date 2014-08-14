@@ -24,6 +24,9 @@ import java.awt.Color;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,7 @@ import net.sf.dynamicreports.report.builder.DynamicReports;
 import net.sf.dynamicreports.report.builder.column.ComponentColumnBuilder;
 import net.sf.dynamicreports.report.builder.column.TextColumnBuilder;
 import net.sf.dynamicreports.report.builder.component.GenericElementBuilder;
+import net.sf.dynamicreports.report.builder.component.VerticalListBuilder;
 import net.sf.dynamicreports.report.builder.expression.AbstractComplexExpression;
 import net.sf.dynamicreports.report.builder.grid.ColumnTitleGroupBuilder;
 import net.sf.dynamicreports.report.builder.style.ConditionalStyleBuilder;
@@ -149,6 +153,7 @@ public abstract class ProcessReport_Base
             final DateTime date = print.getAttribute(CIFabrication.ProcessAbstract.Date);
 
             final Map<Instance, DataBean> dataMap = new HashMap<>();
+            final Map<Instance, DataBean> paraMap = new HashMap<>();
             final QueryBuilder queryBldr = new QueryBuilder(CISales.PositionAbstract);
 
             final QueryBuilder oAttrQueryBldr = new QueryBuilder(CISales.ProductionOrder);
@@ -188,6 +193,22 @@ public abstract class ProcessReport_Base
                 final BigDecimal quantity  = multi.getAttribute(CISales.PositionAbstract.Quantity);
                 if (docInst.getType().isKindOf(CISales.ProductionOrder.getType())
                                 || docInst.getType().isKindOf(CISales.ProductionReport.getType())) {
+                    final DataBean paraBean;
+                    if (paraMap.containsKey(prodInst)) {
+                        paraBean = paraMap.get(prodInst);
+                    } else {
+                        paraBean = getDataBean(_parameter);
+                        paraMap.put(prodInst, paraBean);
+                        paraBean.setProdInstance(prodInst);
+                        paraBean.setProdName(multi.<String>getSelect(prodNameSel));
+                        paraBean.setProdDescription(multi.<String>getSelect(prodDescSel));
+                        paraBean.setProdDimension(Dimension.get(multi.<Long>getSelect(prodDimSel)));
+                    }
+                    if (docInst.getType().isKindOf(CISales.ProductionReport.getType())) {
+                        paraBean.addFabrication(quantity);
+                    } else {
+                        paraBean.addOrder(quantity);
+                    }
                     final QueryBuilder bomQueryBldr = new QueryBuilder(CIProducts.ProductionBOM);
                     bomQueryBldr.addWhereAttrEqValue(CIProducts.ProductionBOM.From, prodInst);
                     final MultiPrintQuery bomMulti = bomQueryBldr.getPrint();
@@ -206,9 +227,11 @@ public abstract class ProcessReport_Base
                         final Instance matInst = bomMulti.getSelect(matInstSel);
                         if (dataMap.containsKey(matInst)) {
                             bean = dataMap.get(matInst);
+                            bean.setParentProdInst(prodInst);
                         } else {
                             bean = getDataBean(_parameter);
                             dataMap.put(matInst, bean);
+                            bean.setParentProdInst(prodInst);
                             bean.setDate(date);
                             bean.setProdInstance(matInst);
                             bean.setProdName(bomMulti.<String>getSelect(matNameSel));
@@ -243,8 +266,71 @@ public abstract class ProcessReport_Base
                     bean.addUsage(quantity);
                 }
             }
+
             final List<DataBean> datasource = new ArrayList<>(dataMap.values());
+            Collections.sort(datasource, new Comparator<DataBean>()
+            {
+
+                @Override
+                public int compare(final DataBean _arg0,
+                                   final DataBean _arg1)
+                {
+                    return _arg0.getProdName().compareTo(_arg1.getProdName());
+                }
+            });
+
+            createTitle(_parameter, paraMap.values());
+
+            createSummary(_parameter, paraMap.values(), datasource);
+
             return new JRBeanCollectionDataSource(datasource);
+        }
+
+        protected void createTitle(final Parameter _parameter,
+                                   final Collection<DataBean> _beans)
+            throws EFapsException
+        {
+            final StringBuilder order = new StringBuilder().append(CISales.ProductionOrder.getType().getLabel())
+                            .append(": ");
+            final StringBuilder fabrication = new StringBuilder()
+                            .append(CISales.ProductionReport.getType().getLabel()).append(": ");
+            for (final DataBean bean : _beans) {
+
+                if (bean.getOrderQuantity().compareTo(BigDecimal.ZERO) > 0) {
+                    order.append(bean.getOrderQuantity()).append(bean.getProdUoM()).append(" ")
+                                    .append(bean.getProdName()).append(" ").append(bean.getProdDescription());
+                }
+                if (bean.getFabricatedQuantity().compareTo(BigDecimal.ZERO) > 0) {
+                    fabrication.append(bean.getFabricatedQuantity()).append(bean.getProdUoM()).append(" ")
+                                    .append(bean.getProdName()).append(" ").append(bean.getProdDescription());
+                }
+            }
+            getReport().addTitle(DynamicReports.cmp.verticalList(DynamicReports.cmp.text(order.toString()),
+                            DynamicReports.cmp.text(fabrication.toString())));
+        }
+
+
+        protected void createSummary(final Parameter _parameter,
+                                     final Collection<DataBean> _parentBeans,
+                                     final Collection<DataBean> _bomBeans)
+            throws EFapsException
+        {
+            for (final DataBean parentBean : _parentBeans) {
+                for (final DataBean bomBean : _bomBeans) {
+                    if (bomBean.getParentProdInst().equals(parentBean.getProdInst())) {
+                        parentBean.addCost(bomBean.getUsageCost());
+                    }
+                }
+            }
+            final VerticalListBuilder vl = DynamicReports.cmp.verticalList();
+            for (final DataBean parentBean : _parentBeans) {
+                final StringBuilder bldr = new StringBuilder()
+                                .append(parentBean.getCost().divide(parentBean.getFabricatedQuantity()))
+                                .append(" ").append(parentBean.getProdName()).append(" ")
+                                .append(parentBean.getProdDescription());
+                vl.add(DynamicReports.cmp.text(bldr.toString()));
+            }
+            getReport().addSummary(vl);
         }
 
         /**
@@ -347,9 +433,10 @@ public abstract class ProcessReport_Base
             }
             prodGrid.add(prodNameColumn, prodDescriptionColumn, prodUoMColumn);
 
-            _builder.addSubtotalAtColumnFooter(DynamicReports.sbt.sum(orderCostColumn))
-                    .addSubtotalAtColumnFooter(DynamicReports.sbt.sum(usageCostColumn))
-                    .addSubtotalAtColumnFooter(DynamicReports.sbt.sum(fabricatedCostColumn));;
+            _builder.setFloatColumnFooter(true)
+                    .addSubtotalAtSummary(DynamicReports.sbt.sum(orderCostColumn))
+                    .addSubtotalAtSummary(DynamicReports.sbt.sum(usageCostColumn))
+                    .addSubtotalAtSummary(DynamicReports.sbt.sum(fabricatedCostColumn));;
 
             _builder.columnGrid(prodGrid, orderGrid, fabricatedGrid, usageGrid, analysisGrid)
                     .addColumn(prodNameColumn, prodDescriptionColumn, prodUoMColumn,
@@ -407,7 +494,7 @@ public abstract class ProcessReport_Base
         private String prodDescription;
         private String prodName;
         private Instance prodInst;
-
+        private Instance parentProdInst;
         private BigDecimal orderQuantity = BigDecimal.ZERO;
         private BigDecimal usageQuantity = BigDecimal.ZERO;
         private BigDecimal fabricatedQuantity = BigDecimal.ZERO;
@@ -625,6 +712,18 @@ public abstract class ProcessReport_Base
             return this.cost;
         }
 
+        /**
+         * Getter method for the instance variable {@link #cost}.
+         *
+         * @return value of instance variable {@link #cost}
+         */
+        public void addCost(final BigDecimal _cost) throws EFapsException
+        {
+            this.init = true;
+            this.cost = this.cost.add(_cost);
+        }
+
+
         public BigDecimal getPercent() throws EFapsException
         {
             BigDecimal order = getFabricatedQuantity();
@@ -702,6 +801,28 @@ public abstract class ProcessReport_Base
         public void setProdDimension(final Dimension _prodDimension)
         {
             this.prodDimension = _prodDimension;
+        }
+
+
+        /**
+         * Getter method for the instance variable {@link #parentProdInst}.
+         *
+         * @return value of instance variable {@link #parentProdInst}
+         */
+        public Instance getParentProdInst()
+        {
+            return this.parentProdInst;
+        }
+
+
+        /**
+         * Setter method for instance variable {@link #parentProdInst}.
+         *
+         * @param _parentProdInst value for instance variable {@link #parentProdInst}
+         */
+        public void setParentProdInst(final Instance _parentProdInst)
+        {
+            this.parentProdInst = _parentProdInst;
         }
     }
 }

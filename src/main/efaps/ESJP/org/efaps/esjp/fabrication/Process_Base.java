@@ -46,6 +46,9 @@ import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.uiform.Create;
 import org.efaps.esjp.erp.CommonDocument;
+import org.efaps.esjp.fabrication.report.ProcessReport;
+import org.efaps.esjp.fabrication.report.ProcessReport_Base.DataBean;
+import org.efaps.esjp.fabrication.report.ProcessReport_Base.ValuesBean;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.ProductBean;
 import org.efaps.esjp.products.Storage;
@@ -66,8 +69,23 @@ public abstract class Process_Base
     extends CommonDocument
 {
 
-
-
+    public Return registerCost(final Parameter _parameter)
+        throws EFapsException
+    {
+        final ProcessReport report = new ProcessReport();
+        final ValuesBean values = report.getValues(_parameter);
+        values.calculateCost();
+        for (final DataBean parentBean : values.getParaMap().values()) {
+            final Insert insert = new Insert(CIProducts.ProductCost);
+            insert.add(CIProducts.ProductCost.CurrencyLink, report.getCurrencyInstance());
+            insert.add(CIProducts.ProductCost.ProductLink, parentBean.getProdInst());
+            insert.add(CIProducts.ProductCost.ValidFrom, new DateTime().withTimeAtStartOfDay());
+            insert.add(CIProducts.ProductCost.ValidUntil, new DateTime().withTimeAtStartOfDay().plusYears(10));
+            insert.add(CIProducts.ProductCost.Price, parentBean.getUnitCost());
+            insert.execute();
+        }
+        return new Return();
+    }
 
     public Return create(final Parameter _parameter)
         throws EFapsException

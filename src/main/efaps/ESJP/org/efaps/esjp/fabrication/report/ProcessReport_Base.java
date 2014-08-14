@@ -65,6 +65,8 @@ import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
 import org.efaps.esjp.common.jasperreport.AbstractDynamicReport;
+import org.efaps.esjp.sales.util.Sales;
+import org.efaps.esjp.sales.util.SalesSettings;
 import org.efaps.ui.wicket.models.EmbeddedLink;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
@@ -75,7 +77,8 @@ import org.slf4j.LoggerFactory;
  * TODO comment!
  *
  * @author The eFaps Team
- * @version $Id$
+ * @version $Id: ProcessReport_Base.java 13635 2014-08-14 21:25:43Z
+ *          jan@moxter.net $
  */
 @EFapsUUID("a6137d37-099f-4915-9945-4a277671c75e")
 @EFapsRevision("$Rev$")
@@ -83,10 +86,12 @@ public abstract class ProcessReport_Base
     extends AbstractCommon
 {
 
+    private Instance currencyInstance;
+
     /**
      * Logging instance used in this class.
      */
-    protected static final Logger LOG = LoggerFactory.getLogger(ProcessReport.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProcessReport.class);
 
     /**
      * @param _parameter Parameter as passed by the eFasp API
@@ -128,6 +133,143 @@ public abstract class ProcessReport_Base
     }
 
     /**
+     * @param _parameter
+     */
+    public ValuesBean getValues(final Parameter _parameter)
+        throws EFapsException
+    {
+        this.currencyInstance = Sales.getSysConfig().getLink(SalesSettings.CURRENCYBASE);
+
+        final ValuesBean ret = new ValuesBean();
+
+        final Instance processInst = _parameter.getInstance();
+        final PrintQuery print = new PrintQuery(processInst);
+        print.addAttribute(CIFabrication.ProcessAbstract.Date);
+        print.execute();
+        final DateTime date = print.getAttribute(CIFabrication.ProcessAbstract.Date);
+
+        final QueryBuilder queryBldr = new QueryBuilder(CISales.PositionAbstract);
+
+        final QueryBuilder oAttrQueryBldr = new QueryBuilder(CISales.ProductionOrder);
+        oAttrQueryBldr.addType(CISales.UsageReport, CISales.ProductionReport);
+        oAttrQueryBldr.addWhereAttrNotEqValue(CISales.DocumentStockAbstract.StatusAbstract,
+                        Status.find(CISales.ProductionOrderStatus.Canceled));
+        oAttrQueryBldr.addWhereAttrNotEqValue(CISales.DocumentStockAbstract.StatusAbstract,
+                        Status.find(CISales.UsageReportStatus.Canceled));
+        oAttrQueryBldr.addWhereAttrNotEqValue(CISales.DocumentStockAbstract.StatusAbstract,
+                        Status.find(CISales.ProductionReportStatus.Canceled));
+
+        final QueryBuilder pAttrQueryBldr = new QueryBuilder(CIFabrication.Process2DocumentAbstract);
+        pAttrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2DocumentAbstract.FromLinkAbstract, processInst);
+        pAttrQueryBldr.addWhereAttrInQuery(CIFabrication.Process2DocumentAbstract.ToLinkAbstract,
+                        oAttrQueryBldr.getAttributeQuery(CISales.DocumentStockAbstract.ID));
+
+        queryBldr.addWhereAttrInQuery(CISales.PositionAbstract.DocumentAbstractLink,
+                        pAttrQueryBldr.getAttributeQuery(CIFabrication.Process2DocumentAbstract.ToLinkAbstract));
+
+        add2QueryBldr(_parameter, queryBldr);
+
+        final MultiPrintQuery multi = queryBldr.getPrint();
+        final SelectBuilder docSel = SelectBuilder.get().linkto(CISales.PositionAbstract.DocumentAbstractLink);
+        final SelectBuilder docInstSel = new SelectBuilder(docSel).instance();
+        final SelectBuilder prodSel = SelectBuilder.get().linkto(CISales.PositionAbstract.Product);
+        final SelectBuilder prodInstSel = new SelectBuilder(prodSel).instance();
+        final SelectBuilder prodNameSel = new SelectBuilder(prodSel).attribute(CIProducts.ProductAbstract.Name);
+        final SelectBuilder prodDescSel = new SelectBuilder(prodSel)
+                        .attribute(CIProducts.ProductAbstract.Description);
+        final SelectBuilder prodDimSel = new SelectBuilder(prodSel).attribute(CIProducts.ProductAbstract.Dimension);
+        multi.addSelect(docInstSel, prodInstSel, prodNameSel, prodDescSel, prodDimSel);
+        multi.addAttribute(CISales.PositionAbstract.Quantity);
+        multi.execute();
+        while (multi.next()) {
+            final Instance docInst = multi.getSelect(docInstSel);
+            final Instance prodInst = multi.getSelect(prodInstSel);
+            final BigDecimal quantity = multi.getAttribute(CISales.PositionAbstract.Quantity);
+            if (docInst.getType().isKindOf(CISales.ProductionOrder.getType())
+                            || docInst.getType().isKindOf(CISales.ProductionReport.getType())) {
+                final DataBean paraBean;
+                if (ret.getParaMap().containsKey(prodInst)) {
+                    paraBean = ret.getParaMap().get(prodInst);
+                } else {
+                    paraBean = getDataBean(_parameter);
+                    ret.getParaMap().put(prodInst, paraBean);
+                    paraBean.setProdInstance(prodInst);
+                    paraBean.setProdName(multi.<String>getSelect(prodNameSel));
+                    paraBean.setProdDescription(multi.<String>getSelect(prodDescSel));
+                    paraBean.setProdDimension(Dimension.get(multi.<Long>getSelect(prodDimSel)));
+                }
+                if (docInst.getType().isKindOf(CISales.ProductionReport.getType())) {
+                    paraBean.addFabrication(quantity);
+                } else {
+                    paraBean.addOrder(quantity);
+                }
+                final QueryBuilder bomQueryBldr = new QueryBuilder(CIProducts.ProductionBOM);
+                bomQueryBldr.addWhereAttrEqValue(CIProducts.ProductionBOM.From, prodInst);
+                final MultiPrintQuery bomMulti = bomQueryBldr.getPrint();
+                final SelectBuilder matSel = SelectBuilder.get().linkto(CIProducts.ProductionBOM.To);
+                final SelectBuilder matInstSel = new SelectBuilder(matSel).instance();
+                final SelectBuilder matNameSel = new SelectBuilder(matSel)
+                                .attribute(CIProducts.ProductAbstract.Name);
+                final SelectBuilder matDescSel = new SelectBuilder(matSel)
+                                .attribute(CIProducts.ProductAbstract.Description);
+                final SelectBuilder matDimSel = new SelectBuilder(matSel)
+                                .attribute(CIProducts.ProductAbstract.Dimension);
+                bomMulti.addSelect(matInstSel, matNameSel, matDescSel, matDimSel);
+                bomMulti.addAttribute(CIProducts.ProductionBOM.Quantity, CIProducts.ProductionBOM.UoM);
+                bomMulti.execute();
+                while (bomMulti.next()) {
+                    final DataBean bean;
+                    final Instance matInst = bomMulti.getSelect(matInstSel);
+                    if (ret.getDataMap().containsKey(matInst)) {
+                        bean = ret.getDataMap().get(matInst);
+                        bean.setParentProdInst(prodInst);
+                    } else {
+                        bean = getDataBean(_parameter);
+                        ret.getDataMap().put(matInst, bean);
+                        bean.setParentProdInst(prodInst);
+                        bean.setDate(date);
+                        bean.setProdInstance(matInst);
+                        bean.setProdName(bomMulti.<String>getSelect(matNameSel));
+                        bean.setProdDescription(bomMulti.<String>getSelect(matDescSel));
+                        bean.setProdDimension(Dimension.get(bomMulti.<Long>getSelect(matDimSel)));
+                    }
+
+                    final UoM uom = Dimension.getUoM(bomMulti.<Long>getAttribute(CIProducts.ProductionBOM.UoM));
+                    BigDecimal bomQuan = bomMulti.<BigDecimal>getAttribute(CIProducts.ProductionBOM.Quantity);
+                    bomQuan = bomQuan.setScale(8, BigDecimal.ROUND_HALF_UP)
+                                    .multiply(new BigDecimal(uom.getNumerator()))
+                                    .divide(new BigDecimal(uom.getDenominator())).multiply(quantity);
+                    if (docInst.getType().isKindOf(CISales.ProductionReport.getType())) {
+                        bean.addFabrication(bomQuan);
+                    } else {
+                        bean.addOrder(bomQuan);
+                    }
+                }
+            } else {
+                final DataBean bean;
+                if (ret.getDataMap().containsKey(prodInst)) {
+                    bean = ret.getDataMap().get(prodInst);
+                } else {
+                    bean = getDataBean(_parameter);
+                    ret.getDataMap().put(prodInst, bean);
+                    bean.setDate(date);
+                    bean.setProdInstance(prodInst);
+                    bean.setProdName(multi.<String>getSelect(prodNameSel));
+                    bean.setProdDescription(multi.<String>getSelect(prodDescSel));
+                    bean.setProdDimension(Dimension.get(multi.<Long>getSelect(prodDimSel)));
+                }
+                bean.addUsage(quantity);
+            }
+        }
+        return ret;
+    }
+
+    public Instance getCurrencyInstance()
+    {
+        return this.currencyInstance;
+    }
+
+    /**
      * @param _parameter Parameter as passed by the eFasp API
      * @return the report class
      * @throws EFapsException on error
@@ -135,139 +277,54 @@ public abstract class ProcessReport_Base
     protected AbstractDynamicReport getReport(final Parameter _parameter)
         throws EFapsException
     {
-        return new DynProcessReport();
+        return new DynProcessReport(this);
+    }
+
+    /**
+     * @param _parameter
+     * @return
+     */
+    protected DataBean getDataBean(final Parameter _parameter)
+    {
+        return new DataBean();
+    }
+
+    /**
+     * @param _parameter Parameter as passed by the eFaps API
+     * @param _queryBldr QueryBuilder to add to
+     * @throws EFapsException on error
+     */
+    protected void add2QueryBldr(final Parameter _parameter,
+                                 final QueryBuilder _queryBldr)
+        throws EFapsException
+    {
+
     }
 
     public static class DynProcessReport
         extends AbstractDynamicReport
     {
 
+        private final ProcessReport_Base container;
+
+        public DynProcessReport(final ProcessReport_Base _container)
+            throws EFapsException
+        {
+            this.container = _container;
+        }
+
+        protected ProcessReport_Base getContainer()
+        {
+            return this.container;
+        }
+
         @Override
         protected JRDataSource createDataSource(final Parameter _parameter)
             throws EFapsException
         {
-            final Instance processInst = _parameter.getInstance();
-            final PrintQuery print = new PrintQuery(processInst);
-            print.addAttribute(CIFabrication.ProcessAbstract.Date);
-            print.execute();
-            final DateTime date = print.getAttribute(CIFabrication.ProcessAbstract.Date);
+            final ValuesBean values = getContainer().getValues(_parameter);
 
-            final Map<Instance, DataBean> dataMap = new HashMap<>();
-            final Map<Instance, DataBean> paraMap = new HashMap<>();
-            final QueryBuilder queryBldr = new QueryBuilder(CISales.PositionAbstract);
-
-            final QueryBuilder oAttrQueryBldr = new QueryBuilder(CISales.ProductionOrder);
-            oAttrQueryBldr.addType(CISales.UsageReport, CISales.ProductionReport);
-            oAttrQueryBldr.addWhereAttrNotEqValue(CISales.DocumentStockAbstract.StatusAbstract,
-                            Status.find(CISales.ProductionOrderStatus.Canceled));
-            oAttrQueryBldr.addWhereAttrNotEqValue(CISales.DocumentStockAbstract.StatusAbstract,
-                            Status.find(CISales.UsageReportStatus.Canceled));
-            oAttrQueryBldr.addWhereAttrNotEqValue(CISales.DocumentStockAbstract.StatusAbstract,
-                            Status.find(CISales.ProductionReportStatus.Canceled));
-
-            final QueryBuilder pAttrQueryBldr = new QueryBuilder(CIFabrication.Process2DocumentAbstract);
-            pAttrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2DocumentAbstract.FromLinkAbstract, processInst);
-            pAttrQueryBldr.addWhereAttrInQuery(CIFabrication.Process2DocumentAbstract.ToLinkAbstract,
-                            oAttrQueryBldr.getAttributeQuery(CISales.DocumentStockAbstract.ID));
-
-            queryBldr.addWhereAttrInQuery(CISales.PositionAbstract.DocumentAbstractLink,
-                            pAttrQueryBldr.getAttributeQuery(CIFabrication.Process2DocumentAbstract.ToLinkAbstract));
-
-            add2QueryBldr(_parameter, queryBldr);
-
-            final MultiPrintQuery multi = queryBldr.getPrint();
-            final SelectBuilder docSel = SelectBuilder.get().linkto(CISales.PositionAbstract.DocumentAbstractLink);
-            final SelectBuilder docInstSel = new SelectBuilder(docSel).instance();
-            final SelectBuilder prodSel = SelectBuilder.get().linkto(CISales.PositionAbstract.Product);
-            final SelectBuilder prodInstSel = new SelectBuilder(prodSel).instance();
-            final SelectBuilder prodNameSel = new SelectBuilder(prodSel).attribute(CIProducts.ProductAbstract.Name);
-            final SelectBuilder prodDescSel = new SelectBuilder(prodSel)
-                            .attribute(CIProducts.ProductAbstract.Description);
-            final SelectBuilder prodDimSel = new SelectBuilder(prodSel).attribute(CIProducts.ProductAbstract.Dimension);
-            multi.addSelect(docInstSel, prodInstSel, prodNameSel, prodDescSel, prodDimSel);
-            multi.addAttribute(CISales.PositionAbstract.Quantity);
-            multi.execute();
-            while (multi.next()) {
-                final Instance docInst = multi.getSelect(docInstSel);
-                final Instance prodInst = multi.getSelect(prodInstSel);
-                final BigDecimal quantity  = multi.getAttribute(CISales.PositionAbstract.Quantity);
-                if (docInst.getType().isKindOf(CISales.ProductionOrder.getType())
-                                || docInst.getType().isKindOf(CISales.ProductionReport.getType())) {
-                    final DataBean paraBean;
-                    if (paraMap.containsKey(prodInst)) {
-                        paraBean = paraMap.get(prodInst);
-                    } else {
-                        paraBean = getDataBean(_parameter);
-                        paraMap.put(prodInst, paraBean);
-                        paraBean.setProdInstance(prodInst);
-                        paraBean.setProdName(multi.<String>getSelect(prodNameSel));
-                        paraBean.setProdDescription(multi.<String>getSelect(prodDescSel));
-                        paraBean.setProdDimension(Dimension.get(multi.<Long>getSelect(prodDimSel)));
-                    }
-                    if (docInst.getType().isKindOf(CISales.ProductionReport.getType())) {
-                        paraBean.addFabrication(quantity);
-                    } else {
-                        paraBean.addOrder(quantity);
-                    }
-                    final QueryBuilder bomQueryBldr = new QueryBuilder(CIProducts.ProductionBOM);
-                    bomQueryBldr.addWhereAttrEqValue(CIProducts.ProductionBOM.From, prodInst);
-                    final MultiPrintQuery bomMulti = bomQueryBldr.getPrint();
-                    final SelectBuilder matSel = SelectBuilder.get().linkto(CIProducts.ProductionBOM.To);
-                    final SelectBuilder matInstSel = new SelectBuilder(matSel).instance();
-                    final SelectBuilder matNameSel = new SelectBuilder(matSel).attribute(CIProducts.ProductAbstract.Name);
-                    final SelectBuilder matDescSel = new SelectBuilder(matSel)
-                                    .attribute(CIProducts.ProductAbstract.Description);
-                    final SelectBuilder matDimSel = new SelectBuilder(matSel)
-                        .attribute(CIProducts.ProductAbstract.Dimension);
-                    bomMulti.addSelect(matInstSel, matNameSel, matDescSel, matDimSel);
-                    bomMulti.addAttribute(CIProducts.ProductionBOM.Quantity, CIProducts.ProductionBOM.UoM);
-                    bomMulti.execute();
-                    while (bomMulti.next()) {
-                        final DataBean bean;
-                        final Instance matInst = bomMulti.getSelect(matInstSel);
-                        if (dataMap.containsKey(matInst)) {
-                            bean = dataMap.get(matInst);
-                            bean.setParentProdInst(prodInst);
-                        } else {
-                            bean = getDataBean(_parameter);
-                            dataMap.put(matInst, bean);
-                            bean.setParentProdInst(prodInst);
-                            bean.setDate(date);
-                            bean.setProdInstance(matInst);
-                            bean.setProdName(bomMulti.<String>getSelect(matNameSel));
-                            bean.setProdDescription(bomMulti.<String>getSelect(matDescSel));
-                            bean.setProdDimension(Dimension.get(bomMulti.<Long>getSelect(matDimSel)));
-                        }
-
-                        final UoM uom = Dimension.getUoM(bomMulti.<Long>getAttribute(CIProducts.ProductionBOM.UoM));
-                        BigDecimal bomQuan = bomMulti.<BigDecimal>getAttribute(CIProducts.ProductionBOM.Quantity);
-                        bomQuan = bomQuan.setScale(8, BigDecimal.ROUND_HALF_UP)
-                                        .multiply(new BigDecimal(uom.getNumerator()))
-                                        .divide(new BigDecimal(uom.getDenominator())).multiply(quantity);
-                        if (docInst.getType().isKindOf(CISales.ProductionReport.getType())) {
-                            bean.addFabrication(bomQuan);
-                        } else {
-                            bean.addOrder(bomQuan);
-                        }
-                    }
-                } else {
-                    final DataBean bean;
-                    if (dataMap.containsKey(prodInst)) {
-                        bean = dataMap.get(prodInst);
-                    } else {
-                        bean = getDataBean(_parameter);
-                        dataMap.put(prodInst, bean);
-                        bean.setDate(date);
-                        bean.setProdInstance(prodInst);
-                        bean.setProdName(multi.<String>getSelect(prodNameSel));
-                        bean.setProdDescription(multi.<String>getSelect(prodDescSel));
-                        bean.setProdDimension(Dimension.get(multi.<Long>getSelect(prodDimSel)));
-                    }
-                    bean.addUsage(quantity);
-                }
-            }
-
-            final List<DataBean> datasource = new ArrayList<>(dataMap.values());
+            final List<DataBean> datasource = new ArrayList<>(values.getDataMap().values());
             Collections.sort(datasource, new Comparator<DataBean>()
             {
 
@@ -279,9 +336,9 @@ public abstract class ProcessReport_Base
                 }
             });
 
-            createTitle(_parameter, paraMap.values());
+            createTitle(_parameter, values.getParaMap().values());
 
-            createSummary(_parameter, paraMap.values(), datasource);
+            createSummary(_parameter, values);
 
             return new JRBeanCollectionDataSource(datasource);
         }
@@ -309,41 +366,20 @@ public abstract class ProcessReport_Base
                             DynamicReports.cmp.text(fabrication.toString())));
         }
 
-
         protected void createSummary(final Parameter _parameter,
-                                     final Collection<DataBean> _parentBeans,
-                                     final Collection<DataBean> _bomBeans)
+                                     final ValuesBean _values)
             throws EFapsException
         {
-            for (final DataBean parentBean : _parentBeans) {
-                for (final DataBean bomBean : _bomBeans) {
-                    if (bomBean.getParentProdInst().equals(parentBean.getProdInst())) {
-                        parentBean.addCost(bomBean.getUsageCost());
-                    }
-                }
-            }
+            _values.calculateCost();
             final VerticalListBuilder vl = DynamicReports.cmp.verticalList();
-            for (final DataBean parentBean : _parentBeans) {
+            for (final DataBean parentBean : _values.getParaMap().values()) {
                 final StringBuilder bldr = new StringBuilder()
-                                .append(parentBean.getCost()
-                                                .divide(parentBean.getFabricatedQuantity(), BigDecimal.ROUND_HALF_UP))
+                                .append(parentBean.getUnitCost())
                                 .append(" ").append(parentBean.getProdName()).append(" ")
                                 .append(parentBean.getProdDescription());
                 vl.add(DynamicReports.cmp.text(bldr.toString()));
             }
             getReport().addSummary(vl);
-        }
-
-        /**
-         * @param _parameter Parameter as passed by the eFaps API
-         * @param _queryBldr QueryBuilder to add to
-         * @throws EFapsException on error
-         */
-        protected void add2QueryBldr(final Parameter _parameter,
-                                     final QueryBuilder _queryBldr)
-            throws EFapsException
-        {
-
         }
 
         @Override
@@ -394,7 +430,6 @@ public abstract class ProcessReport_Base
                             .getProperty(ProcessReport.class.getName() + ".Column.Difference"),
                             "difference", DynamicReports.type.bigDecimalType());
 
-
             final ColumnTitleGroupBuilder prodGrid = DynamicReports.grid.titleGroup(DBProperties
                             .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Prod"));
             final ColumnTitleGroupBuilder orderGrid = DynamicReports.grid.titleGroup(DBProperties
@@ -413,14 +448,14 @@ public abstract class ProcessReport_Base
 
             final ConditionalStyleBuilder conditionRed = DynamicReports.stl.conditionalStyle(
                             DynamicReports.cnd.smaller(differenceColumn, 0))
-                                      .setForegroundColor(Color.RED);
+                            .setForegroundColor(Color.RED);
             final ConditionalStyleBuilder conditionGreen = DynamicReports.stl.conditionalStyle(
                             DynamicReports.cnd.greater(differenceColumn, 0))
-                                      .setForegroundColor(new Color(8, 81, 24));
+                            .setForegroundColor(new Color(8, 81, 24));
 
             final StyleBuilder conditionStyle = DynamicReports.stl.style()
-                                   .conditionalStyles(conditionRed, conditionGreen)
-                                   .setBold(true);
+                            .conditionalStyles(conditionRed, conditionGreen)
+                            .setBold(true);
             differenceColumn.setStyle(conditionStyle);
 
             final GenericElementBuilder linkElement = DynamicReports.cmp.genericElement(
@@ -435,25 +470,17 @@ public abstract class ProcessReport_Base
             prodGrid.add(prodNameColumn, prodDescriptionColumn, prodUoMColumn);
 
             _builder.setFloatColumnFooter(true)
-                    .addSubtotalAtSummary(DynamicReports.sbt.sum(orderCostColumn))
-                    .addSubtotalAtSummary(DynamicReports.sbt.sum(usageCostColumn))
-                    .addSubtotalAtSummary(DynamicReports.sbt.sum(fabricatedCostColumn));;
+                            .addSubtotalAtSummary(DynamicReports.sbt.sum(orderCostColumn))
+                            .addSubtotalAtSummary(DynamicReports.sbt.sum(usageCostColumn))
+                            .addSubtotalAtSummary(DynamicReports.sbt.sum(fabricatedCostColumn));
+            ;
 
             _builder.columnGrid(prodGrid, orderGrid, fabricatedGrid, usageGrid, analysisGrid)
-                    .addColumn(prodNameColumn, prodDescriptionColumn, prodUoMColumn,
-                                    orderQuantityColumn, orderCostColumn,
-                                    fabricatedQuantityColumn, fabricatedCostColumn,
-                                    usageQuantityColumn, usageCostColumn,
-                                    percentColumn, differenceColumn);
-        }
-
-        /**
-         * @param _parameter
-         * @return
-         */
-        protected DataBean getDataBean(final Parameter _parameter)
-        {
-            return new DataBean();
+                            .addColumn(prodNameColumn, prodDescriptionColumn, prodUoMColumn,
+                                            orderQuantityColumn, orderCostColumn,
+                                            fabricatedQuantityColumn, fabricatedCostColumn,
+                                            usageQuantityColumn, usageCostColumn,
+                                            percentColumn, differenceColumn);
         }
 
     }
@@ -487,9 +514,48 @@ public abstract class ProcessReport_Base
         }
     }
 
+    public static class ValuesBean
+    {
+
+        private final Map<Instance, DataBean> dataMap = new HashMap<>();
+        private final Map<Instance, DataBean> paraMap = new HashMap<>();
+
+        /**
+         * Getter method for the instance variable {@link #dataMap}.
+         *
+         * @return value of instance variable {@link #dataMap}
+         */
+        public Map<Instance, DataBean> getDataMap()
+        {
+            return this.dataMap;
+        }
+
+        /**
+         * Getter method for the instance variable {@link #paraMap}.
+         *
+         * @return value of instance variable {@link #paraMap}
+         */
+        public Map<Instance, DataBean> getParaMap()
+        {
+            return this.paraMap;
+        }
+
+        public void calculateCost()
+            throws EFapsException
+        {
+            for (final DataBean parentBean : this.paraMap.values()) {
+                for (final DataBean bomBean : this.dataMap.values()) {
+                    if (bomBean.getParentProdInst().equals(parentBean.getProdInst())) {
+                        parentBean.addCost(bomBean.getUsageCost());
+                    }
+                }
+            }
+        }
+    }
 
     public static class DataBean
     {
+
         private DateTime date;
         private Dimension prodDimension;
         private String prodDescription;
@@ -504,7 +570,8 @@ public abstract class ProcessReport_Base
 
         private boolean init;
 
-        protected void initialize() throws EFapsException
+        protected void initialize()
+            throws EFapsException
         {
             if (!this.init) {
                 final QueryBuilder costBldr = new QueryBuilder(CIProducts.ProductCost);
@@ -547,7 +614,6 @@ public abstract class ProcessReport_Base
             this.orderQuantity = this.orderQuantity.add(_orderQuantity);
         }
 
-
         /**
          * @param _bomQuan
          */
@@ -555,7 +621,6 @@ public abstract class ProcessReport_Base
         {
             this.usageQuantity = this.usageQuantity.add(_usageQuantity);
         }
-
 
         /**
          * @param _bomQuan
@@ -636,7 +701,8 @@ public abstract class ProcessReport_Base
          *
          * @return value of instance variable {@link #orderQuantity}
          */
-        public BigDecimal getOrderCost() throws EFapsException
+        public BigDecimal getOrderCost()
+            throws EFapsException
         {
             return getOrderQuantity().multiply(getCost());
         }
@@ -644,13 +710,13 @@ public abstract class ProcessReport_Base
         /**
          * Setter method for instance variable {@link #orderQuantity}.
          *
-         * @param _orderQuantity value for instance variable {@link #orderQuantity}
+         * @param _orderQuantity value for instance variable
+         *            {@link #orderQuantity}
          */
         public void setOrderQuantity(final BigDecimal _orderQuantity)
         {
             this.orderQuantity = _orderQuantity;
         }
-
 
         /**
          * Getter method for the instance variable {@link #usageQuantity}.
@@ -667,7 +733,8 @@ public abstract class ProcessReport_Base
          *
          * @return value of instance variable {@link #usageQuantity}
          */
-        public BigDecimal getUsageCost() throws EFapsException
+        public BigDecimal getUsageCost()
+            throws EFapsException
         {
             return getUsageQuantity().multiply(getCost());
         }
@@ -675,7 +742,8 @@ public abstract class ProcessReport_Base
         /**
          * Setter method for instance variable {@link #usageQuantity}.
          *
-         * @param _usageQuantity value for instance variable {@link #usageQuantity}
+         * @param _usageQuantity value for instance variable
+         *            {@link #usageQuantity}
          */
         public void setUsageQuantity(final BigDecimal _usageQuantity)
         {
@@ -702,12 +770,19 @@ public abstract class ProcessReport_Base
             this.date = _date;
         }
 
+        public BigDecimal getUnitCost()
+            throws EFapsException
+        {
+            return getCost().divide(getFabricatedQuantity(), BigDecimal.ROUND_HALF_UP);
+        }
+
         /**
          * Getter method for the instance variable {@link #cost}.
          *
          * @return value of instance variable {@link #cost}
          */
-        public BigDecimal getCost() throws EFapsException
+        public BigDecimal getCost()
+            throws EFapsException
         {
             initialize();
             return this.cost;
@@ -718,14 +793,15 @@ public abstract class ProcessReport_Base
          *
          * @return value of instance variable {@link #cost}
          */
-        public void addCost(final BigDecimal _cost) throws EFapsException
+        public void addCost(final BigDecimal _cost)
+            throws EFapsException
         {
             this.init = true;
             this.cost = this.cost.add(_cost);
         }
 
-
-        public BigDecimal getPercent() throws EFapsException
+        public BigDecimal getPercent()
+            throws EFapsException
         {
             BigDecimal order = getFabricatedQuantity();
             if (order.compareTo(BigDecimal.ZERO) == 0) {
@@ -765,7 +841,8 @@ public abstract class ProcessReport_Base
         /**
          * Setter method for instance variable {@link #fabricatedQuantity}.
          *
-         * @param _fabricatedQuantity value for instance variable {@link #fabricatedQuantity}
+         * @param _fabricatedQuantity value for instance variable
+         *            {@link #fabricatedQuantity}
          */
         public void setFabricatedQuantity(final BigDecimal _fabricatedQuantity)
         {
@@ -777,11 +854,11 @@ public abstract class ProcessReport_Base
          *
          * @return value of instance variable {@link #usageQuantity}
          */
-        public BigDecimal getFabricatedCost() throws EFapsException
+        public BigDecimal getFabricatedCost()
+            throws EFapsException
         {
             return getFabricatedQuantity().multiply(getCost());
         }
-
 
         /**
          * Getter method for the instance variable {@link #prodDimension}.
@@ -793,17 +870,16 @@ public abstract class ProcessReport_Base
             return this.prodDimension;
         }
 
-
         /**
          * Setter method for instance variable {@link #prodDimension}.
          *
-         * @param _prodDimension value for instance variable {@link #prodDimension}
+         * @param _prodDimension value for instance variable
+         *            {@link #prodDimension}
          */
         public void setProdDimension(final Dimension _prodDimension)
         {
             this.prodDimension = _prodDimension;
         }
-
 
         /**
          * Getter method for the instance variable {@link #parentProdInst}.
@@ -815,11 +891,11 @@ public abstract class ProcessReport_Base
             return this.parentProdInst;
         }
 
-
         /**
          * Setter method for instance variable {@link #parentProdInst}.
          *
-         * @param _parentProdInst value for instance variable {@link #parentProdInst}
+         * @param _parentProdInst value for instance variable
+         *            {@link #parentProdInst}
          */
         public void setParentProdInst(final Instance _parentProdInst)
         {

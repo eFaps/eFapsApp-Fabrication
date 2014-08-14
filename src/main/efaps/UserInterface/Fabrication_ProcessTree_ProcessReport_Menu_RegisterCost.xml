@@ -20,18 +20,19 @@
  Last Changed By: $Author$
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>532ad9fd-3f13-4a9a-99b7-c779b69adacf</uuid>
-    <file-application>eFapsApp-Products</file-application>
+    <uuid>17a65495-6479-48a5-ac7f-02594223e5f5</uuid>
+    <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_ProcessTree_ProcessReport_Menu</name>
-        <childs>
-            <child>Fabrication_ProcessTree_ProcessReport_Menu_DownloadExcel</child>
-            <child>Fabrication_ProcessTree_ProcessReport_Menu_DownloadPDF</child>
-            <child>Fabrication_ProcessTree_ProcessReport_Menu_RegisterCost</child>
-        </childs>
+        <name>Fabrication_ProcessTree_ProcessReport_Menu_RegisterCost</name>
+        <target>
+            <form>Fabrication_ProcessTree_RegisterCostForm</form>
+            <execute method="registerCost" program="org.efaps.esjp.fabrication.Process"/>
+        </target>
+        <property name="Target">hidden</property>
+        <property name="AskUser">true</property>
     </definition>
-</ui-menu>
+</ui-command>

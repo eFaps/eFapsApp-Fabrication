@@ -325,7 +325,8 @@ public abstract class ProcessReport_Base
             final VerticalListBuilder vl = DynamicReports.cmp.verticalList();
             for (final DataBean parentBean : _parentBeans) {
                 final StringBuilder bldr = new StringBuilder()
-                                .append(parentBean.getCost().divide(parentBean.getFabricatedQuantity()))
+                                .append(parentBean.getCost()
+                                                .divide(parentBean.getFabricatedQuantity(), BigDecimal.ROUND_HALF_UP))
                                 .append(" ").append(parentBean.getProdName()).append(" ")
                                 .append(parentBean.getProdDescription());
                 vl.add(DynamicReports.cmp.text(bldr.toString()));

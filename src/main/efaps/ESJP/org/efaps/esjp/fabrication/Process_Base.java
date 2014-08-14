@@ -21,18 +21,24 @@
 package org.efaps.esjp.fabrication;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.efaps.admin.datamodel.Status;
 import org.efaps.admin.event.Parameter;
+import org.efaps.admin.event.Parameter.ParameterValues;
 import org.efaps.admin.event.Return;
+import org.efaps.admin.event.Return.ReturnValues;
 import org.efaps.admin.program.esjp.EFapsRevision;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.db.Context;
 import org.efaps.db.Insert;
 import org.efaps.db.Instance;
 import org.efaps.db.MultiPrintQuery;
+import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
 import org.efaps.esjp.ci.CIFabrication;
@@ -43,6 +49,7 @@ import org.efaps.esjp.erp.CommonDocument;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.ProductBean;
 import org.efaps.esjp.products.Storage;
+import org.efaps.ui.wicket.util.EFapsKey;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
 
@@ -59,6 +66,9 @@ public abstract class Process_Base
     extends CommonDocument
 {
 
+
+
+
     public Return create(final Parameter _parameter)
         throws EFapsException
     {
@@ -74,11 +84,11 @@ public abstract class Process_Base
             }
 
             @Override
-            public void connect(Parameter _parameter,
-                                Instance _instance)
+            public void connect(final Parameter _parameter,
+                                final Instance _instance)
                 throws EFapsException
             {
-                CreatedDoc createdDoc = new CreatedDoc(_instance);
+                final CreatedDoc createdDoc = new CreatedDoc(_instance);
                 connect2Object(_parameter, createdDoc);
             }
 
@@ -100,7 +110,7 @@ public abstract class Process_Base
         insert.add(CISales.UsageReport.Status, Status.find(CISales.UsageReportStatus.Open));
         insert.execute();
         int i = 0;
-        for (BOMBean bom : inst2bom.values()) {
+        for (final BOMBean bom : inst2bom.values()) {
             final Insert insPos = new Insert(CISales.UsageReportPosition);
             insPos.add(CISales.UsageReportPosition.PositionNumber, i++);
             insPos.add(CISales.UsageReportPosition.DocumentAbstractLink, insert.getInstance());
@@ -189,6 +199,71 @@ public abstract class Process_Base
     {
         final Storage storage = new Storage();
         return storage.autoComplete4Storage(_parameter);
+    }
+
+    /**
+     * Autocomplete for the field used to select a project.
+     *
+     * @param _parameter Parameter as passed from eFaps
+     * @return Return containing map needed for an autocomplete field
+     * @throws EFapsException on error
+     */
+    public Return autoComplete4Process(final Parameter _parameter)
+        throws EFapsException
+    {
+        final String input = (String) _parameter.get(ParameterValues.OTHERS);
+        final List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+        final Map<String, Map<String, String>> orderMap = new TreeMap<String, Map<String, String>>();
+
+        final String key = containsProperty(_parameter, "Key") ? getProperty(_parameter, "Key") : "OID";
+
+        final QueryBuilder queryBldr = getQueryBldrFromProperties(_parameter);
+        queryBldr.addWhereAttrMatchValue(CIFabrication.ProcessAbstract.Name, input + "*").setIgnoreCase(true);
+
+        final MultiPrintQuery multi = queryBldr.getPrint();
+        multi.addAttribute(CIFabrication.ProcessAbstract.Name);
+        multi.addAttribute(key);
+        multi.execute();
+        while (multi.next()) {
+            final String name = multi.<String>getAttribute(CIFabrication.ProcessAbstract.Name);
+            final Map<String, String> map = new HashMap<String, String>();
+            map.put(EFapsKey.AUTOCOMPLETE_KEY.getKey(), multi.getAttribute(key).toString());
+            map.put(EFapsKey.AUTOCOMPLETE_VALUE.getKey(), name);
+            map.put(EFapsKey.AUTOCOMPLETE_CHOICE.getKey(), name);
+            orderMap.put(name, map);
+        }
+        list.addAll(orderMap.values());
+        final Return retVal = new Return();
+        retVal.put(ReturnValues.VALUES, list);
+        return retVal;
+    }
+
+    /**
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return listmap for fieldupdate event
+     * @throws EFapsException on error
+     */
+    public Return updateField4Process(final Parameter _parameter)
+        throws EFapsException
+    {
+        final Return ret = new Return();
+        final List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        final Map<String, Object> map = new HashMap<String, Object>();
+        final Instance instance = Instance.get(_parameter.getParameterValue("fabricationProcess"));
+        final String projDataField = getProperty(_parameter, "Process_DataField", "fabricationProcessData");
+
+        final PrintQuery print = new PrintQuery(instance);
+        print.addAttribute(CIFabrication.ProcessAbstract.Name, CIFabrication.ProcessAbstract.Date);
+        print.execute();
+
+        final StringBuilder bldr = new StringBuilder().append(print.getAttribute(CIFabrication.ProcessAbstract.Name))
+                        .append(" - ").append(print.<DateTime>getAttribute( CIFabrication.ProcessAbstract.Date)
+                                        .toString("dd/MM/yyyy", Context.getThreadContext().getLocale()));
+
+        map.put(projDataField, bldr.toString());
+        list.add(map);
+        ret.put(ReturnValues.VALUES, list);
+        return ret;
     }
 
 }

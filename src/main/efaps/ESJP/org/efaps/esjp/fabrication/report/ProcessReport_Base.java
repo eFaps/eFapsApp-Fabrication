@@ -773,7 +773,11 @@ public abstract class ProcessReport_Base
         public BigDecimal getUnitCost()
             throws EFapsException
         {
-            return getCost().divide(getFabricatedQuantity(), BigDecimal.ROUND_HALF_UP);
+            BigDecimal div = getFabricatedQuantity();
+            if (div.compareTo(BigDecimal.ZERO) == 0) {
+                div = BigDecimal.ONE;
+            }
+            return getCost().divide(div, BigDecimal.ROUND_HALF_UP);
         }
 
         /**

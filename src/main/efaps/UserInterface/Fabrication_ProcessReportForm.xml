@@ -30,6 +30,7 @@
         <name>Fabrication_ProcessReportForm</name>
         <field name="report">
             <property name="HideLabel">true</property>
+            <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
             <trigger event="UI_FIELD_VALUE" method="generateReport"
                 name="FFabrication_ProcessReportForm.report.UI_FIELD_VALUE"
                 program="org.efaps.esjp.fabrication.report.ProcessReport">

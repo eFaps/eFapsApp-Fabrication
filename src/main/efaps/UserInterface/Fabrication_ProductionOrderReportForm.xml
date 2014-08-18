@@ -30,6 +30,7 @@ xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.
         <name>Fabrication_ProductionOrderReportForm</name>
         <field name="report">
             <property name="HideLabel">true</property>
+            <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
             <trigger event="UI_FIELD_VALUE"
                 method="generateReport"
                 name="Fabrication_ProductionOrderReportForm.report.UI_FIELD_VALUE"

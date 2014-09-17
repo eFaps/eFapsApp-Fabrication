@@ -65,8 +65,7 @@ import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
 import org.efaps.esjp.common.jasperreport.AbstractDynamicReport;
-import org.efaps.esjp.sales.util.Sales;
-import org.efaps.esjp.sales.util.SalesSettings;
+import org.efaps.esjp.erp.Currency;
 import org.efaps.ui.wicket.models.EmbeddedLink;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
@@ -138,7 +137,7 @@ public abstract class ProcessReport_Base
     public ValuesBean getValues(final Parameter _parameter)
         throws EFapsException
     {
-        this.currencyInstance = Sales.getSysConfig().getLink(SalesSettings.CURRENCYBASE);
+        this.currencyInstance = Currency.getBaseCurrency();
 
         final ValuesBean ret = new ValuesBean();
 

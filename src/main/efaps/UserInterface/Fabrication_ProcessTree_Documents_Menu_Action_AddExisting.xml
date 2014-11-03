@@ -53,6 +53,7 @@
                 <!-- Sales_ProductionReport -->
                 <property name="ConnectChildType02">f069a1fc-f500-4e2c-9ef9-6727115ca317</property>
             </execute>
+            <validate program="org.efaps.esjp.fabrication.Process" method="validate4Connect"></validate>
         </target>
         <property name="Target">modal</property>
     </definition>

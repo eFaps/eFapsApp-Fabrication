@@ -45,12 +45,17 @@ import org.efaps.esjp.ci.CIFabrication;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.uiform.Create;
+import org.efaps.esjp.erp.AbstractWarning;
 import org.efaps.esjp.erp.CommonDocument;
+import org.efaps.esjp.erp.IWarning;
+import org.efaps.esjp.erp.WarningUtil;
 import org.efaps.esjp.fabrication.report.ProcessReport;
 import org.efaps.esjp.fabrication.report.ProcessReport_Base.DataBean;
 import org.efaps.esjp.fabrication.report.ProcessReport_Base.ValuesBean;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.ProductBean;
+import org.efaps.esjp.fabrication.util.Fabrication;
+import org.efaps.esjp.fabrication.util.FabricationSettings;
 import org.efaps.esjp.products.Storage;
 import org.efaps.ui.wicket.util.EFapsKey;
 import org.efaps.util.EFapsException;
@@ -282,6 +287,81 @@ public abstract class Process_Base
         list.add(map);
         ret.put(ReturnValues.VALUES, list);
         return ret;
+    }
+
+    /**
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return listmap for fieldupdate event
+     * @throws EFapsException on error
+     */
+    public Return validate4Connect(final Parameter _parameter)
+        throws EFapsException
+    {
+        final Return ret = new Return();
+        final List<IWarning> warnings = new ArrayList<IWarning>();
+        if (Fabrication.getSysConfig().getAttributeValueAsBoolean(FabricationSettings.ONEPROD4PROCESS)) {
+            final List<Instance> prodOrderInsts = new ArrayList<>();
+            final String[] oids = _parameter.getParameterValues("selectedRow");
+            if (oids != null) {
+                for (final String oid : oids) {
+                    final Instance docInst = Instance.get(oid);
+                    if (docInst.getType().isKindOf(CISales.ProductionOrder)) {
+                        prodOrderInsts.add(docInst);
+                    }
+                }
+            }
+            if (!prodOrderInsts.isEmpty()) {
+                final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionOrder);
+                attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionOrder.FromLink,
+                                _parameter.getInstance());
+                final QueryBuilder orderQueryBldr = new QueryBuilder(CISales.ProductionOrder);
+                orderQueryBldr.addWhereAttrInQuery(CISales.ProductionOrder.ID,
+                                attrQueryBldr.getAttributeQuery(CIFabrication.Process2ProductionOrder.ToLink));
+                prodOrderInsts.addAll(orderQueryBldr.getQuery().execute());
+
+                final QueryBuilder posQueryBldr = new QueryBuilder(CISales.ProductionOrderPosition);
+                posQueryBldr.addWhereAttrEqValue(CISales.ProductionOrderPosition.DocumentAbstractLink,
+                                prodOrderInsts.toArray());
+                final MultiPrintQuery multi = posQueryBldr.getPrint();
+                final SelectBuilder sel = SelectBuilder.get().linkto(CISales.ProductionOrderPosition.Product)
+                                .instance();
+                multi.addSelect(sel);
+                multi.execute();
+                Instance prodInst = null;
+                while (multi.next()) {
+                    if (prodInst == null) {
+                        prodInst = multi.getSelect(sel);
+                    } else if (!prodInst.equals(multi.getSelect(sel))) {
+                        warnings.add(new FabricationProcessProductWarning());
+                    }
+                }
+            }
+        }
+        ;
+        if (warnings.isEmpty()) {
+            ret.put(ReturnValues.TRUE, true);
+        } else {
+            ret.put(ReturnValues.SNIPLETT, WarningUtil.getHtml4Warning(warnings).toString());
+            if (!WarningUtil.hasError(warnings)) {
+                ret.put(ReturnValues.TRUE, true);
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Warning for amount greater zero.
+     */
+    public static class FabricationProcessProductWarning
+        extends AbstractWarning
+    {
+        /**
+         * Constructor.
+         */
+        public FabricationProcessProductWarning()
+        {
+            setError(true);
+        }
     }
 
 }

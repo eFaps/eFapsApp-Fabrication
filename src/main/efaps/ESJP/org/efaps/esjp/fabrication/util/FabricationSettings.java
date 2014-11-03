@@ -35,5 +35,13 @@ import org.efaps.admin.program.esjp.EFapsUUID;
 @EFapsRevision("$Rev$")
 public interface FabricationSettings
 {
+    /**
+     * Base key.
+     */
+    String BASE = "org.efaps.fabrication.";
 
+    /**
+     * validate that there is only one product used per process.
+     */
+    String ONEPROD4PROCESS = FabricationSettings.BASE + "OneProductPerProcess";
 }

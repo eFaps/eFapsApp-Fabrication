@@ -20,21 +20,21 @@
  Last Changed By: $Author$
 
 -->
-<ui-search xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>d7665958-66ff-4d58-80c6-8415989aedbd</uuid>
-    <file-application>eFapsApp-ImportExport</file-application>
+    <uuid>9bd00a40-c817-463f-8b17-db83dac72a7a</uuid>
+    <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_ProcessTree_Documents_Menu_Action_AddExisting_Search</name>
-        <default>
-            <command>Fabrication_ProductionOrderSearch</command>
-        </default>
-        <childs>
-            <child>Fabrication_ProductionOrderSearch</child>
-            <child>Sales_UsageReportSearch</child>
-            <child>Sales_ProductionReportSearch</child>
-        </childs>
+        <name>Fabrication_ProductionOrderSearch</name>
+        <target>
+            <form>Sales_ProductionOrderSearchForm</form>
+            <table>Sales_DocumentAbstractUnfilteredTable</table>
+            <evaluate program="org.efaps.esjp.fabrication.Process" method="searchProductionOrder">
+                <property name="Type">Sales_ProductionOrder</property>
+            </evaluate>
+        </target>
+        <property name="TargetMode">search</property>
     </definition>
-</ui-search>
+</ui-command>

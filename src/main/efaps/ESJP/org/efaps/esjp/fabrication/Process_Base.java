@@ -45,6 +45,7 @@ import org.efaps.esjp.ci.CIFabrication;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.uiform.Create;
+import org.efaps.esjp.common.uisearch.Search;
 import org.efaps.esjp.erp.AbstractWarning;
 import org.efaps.esjp.erp.CommonDocument;
 import org.efaps.esjp.erp.IWarning;
@@ -347,6 +348,42 @@ public abstract class Process_Base
             }
         }
         return ret;
+    }
+
+    /**
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return listmap for fieldupdate event
+     * @throws EFapsException on error
+     */
+    public Return searchProductionOrder(final Parameter _parameter)
+        throws EFapsException
+    {
+        final Search search = new Search()
+        {
+
+            @Override
+            protected void add2QueryBuilder(final Parameter _parameter,
+                                            final QueryBuilder _queryBldr)
+                throws EFapsException
+            {
+                super.add2QueryBuilder(_parameter, _queryBldr);
+                if (Fabrication.getSysConfig().getAttributeValueAsBoolean(FabricationSettings.ONEPROD4PROCESS)) {
+                    final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionOrder);
+                    attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionOrder.FromLink,
+                                    _parameter.getInstance());
+                    final QueryBuilder posQueryBldr = new QueryBuilder(CISales.ProductionOrderPosition);
+                    posQueryBldr.addWhereAttrInQuery(CISales.ProductionOrderPosition.DocumentAbstractLink,
+                                    attrQueryBldr.getAttributeQuery(CIFabrication.Process2ProductionOrder.ToLink));
+
+                    final QueryBuilder posQueryBldr2 = new QueryBuilder(CISales.ProductionOrderPosition);
+                    posQueryBldr2.addWhereAttrInQuery(CISales.ProductionOrderPosition.Product,
+                                    posQueryBldr.getAttributeQuery(CISales.ProductionOrderPosition.Product));
+                    _queryBldr.addWhereAttrInQuery(CISales.ProductionOrder.ID, posQueryBldr2
+                                    .getAttributeQuery(CISales.ProductionOrderPosition.DocumentAbstractLink));
+                }
+            }
+        };
+        return search.execute(_parameter);
     }
 
     /**

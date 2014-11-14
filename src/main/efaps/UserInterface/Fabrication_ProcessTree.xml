@@ -27,6 +27,9 @@
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
+        <application-dependencies>
+            <application name="eFapsApp-Archives" exclude="true"/>
+        </application-dependencies>
         <name>Fabrication_ProcessTree</name>
         <target>
             <menu>Fabrication_ProcessTree_Menu</menu>
@@ -38,6 +41,27 @@
             <child>Fabrication_ProcessTree_ProductionOrderReport</child>
             <child>Fabrication_ProcessTree_UsageReport</child>
             <child>Fabrication_ProcessTree_ProcessReport</child>
+        </childs>
+        <property name="Target">content</property>
+        <property name="TargetMode">view</property>
+    </definition>
+    <definition>
+        <version-expression>(version==latest)</version-expression>
+        <application-dependencies>
+            <application name="eFapsApp-Archives" />
+        </application-dependencies>
+        <name>Fabrication_ProcessTree</name>
+        <target>
+            <menu>Fabrication_ProcessTree_Menu</menu>
+            <form>Fabrication_ProcessForm</form>
+        </target>
+        <type>Fabrication_Process</type>
+        <childs>
+            <child>Fabrication_ProcessTree_Documents</child>
+            <child>Fabrication_ProcessTree_ProductionOrderReport</child>
+            <child>Fabrication_ProcessTree_UsageReport</child>
+            <child>Fabrication_ProcessTree_ProcessReport</child>
+            <child>Fabrication_ProcessTree_File</child>
         </childs>
         <property name="Target">content</property>
         <property name="TargetMode">view</property>

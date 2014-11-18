@@ -67,9 +67,11 @@
         RunLevel.init("shell");
         RunLevel.execute();
 
-        <!-- Fabrication_MyDesk, MainToolBar -->
+        // Fabrication_MyDesk, MainToolBar
         UIUpdate update = new UIUpdate();
         update.add2Menu("2d9723d0-fd27-4c97-8dfb-c31dd25021fb", "87001cc3-c45c-44de-b8f1-776df507f268", 2);
+        // Fabrication_Sales_ProductionOrderMyDesk_Menu_Action_CreateProcess, Sales_ProductionOrderMyDesk_Menu_Action
+        update.add2Menu("d1352074-ec46-4106-8cc0-34e96535a017", "4f868211-817b-4e06-b7b6-f7a0a7b945b5", 2);
 
      </script>
     </version>

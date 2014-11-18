@@ -42,10 +42,12 @@ import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
 import org.efaps.esjp.ci.CIFabrication;
+import org.efaps.esjp.ci.CIFormFabrication;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.uiform.Create;
 import org.efaps.esjp.common.uisearch.Search;
+import org.efaps.esjp.common.util.InterfaceUtils;
 import org.efaps.esjp.erp.AbstractWarning;
 import org.efaps.esjp.erp.CommonDocument;
 import org.efaps.esjp.erp.IWarning;
@@ -115,11 +117,10 @@ public abstract class Process_Base
                 final CreatedDoc createdDoc = new CreatedDoc(_instance);
                 connect2Object(_parameter, createdDoc);
             }
-
         };
-
         return create.execute(_parameter);
     }
+
 
     public Return createUsageReport(final Parameter _parameter)
         throws EFapsException
@@ -384,6 +385,38 @@ public abstract class Process_Base
             }
         };
         return search.execute(_parameter);
+    }
+
+    public Return getJavaScriptUIValue(final Parameter _parameter)
+        throws EFapsException
+    {
+        final Return retVal = new Return();
+        retVal.put(ReturnValues.SNIPLETT,
+                        InterfaceUtils.wrappInScriptTag(_parameter, getJavaScript(_parameter), true, 1500));
+        return retVal;
+    }
+
+
+    /**
+     * @param _parameter
+     * @return
+     */
+    private CharSequence getJavaScript(final Parameter _parameter)
+        throws EFapsException
+    {
+        final StringBuilder ret = new StringBuilder();
+        final String oid = _parameter.getParameterValue("selectedRow");
+        if (oid != null && !oid.isEmpty()) {
+            final Instance inst = Instance.get(oid);
+            if (inst.isValid() && inst.getType().isCIType(CISales.ProductionOrder)) {
+                final PrintQuery print = new PrintQuery(inst);
+                print.addAttribute(CISales.ProductionOrder.Name);
+                print.execute();
+                ret.append(getSetFieldValue(0, CIFormFabrication.Fabrication_ProcessForm.productionOrder.name,
+                                inst.getOid(), print.<String>getAttribute(CISales.ProductionOrder.Name)));
+            }
+        }
+        return ret;
     }
 
     /**

@@ -112,5 +112,16 @@
             <property name="Columns">70</property>
             <property name="Rows">5</property>
         </field>
+         <field name="javaScript">
+            <property name="ModePrint">NONE</property>
+            <property name="ModeCreate">HIDDEN</property>
+            <property name="ModeView">NONE</property>
+            <property name="ModeEdit">NONE</property>
+            <property name="UIType">SNIPPLET</property>
+            <trigger program="org.efaps.esjp.fabrication.Process"
+                method="getJavaScriptUIValue"
+                name="Sales_InvoiceForm.javaScript.UI_Field_Value"
+                event="UI_FIELD_VALUE" />
+        </field>
     </definition>
 </ui-form>

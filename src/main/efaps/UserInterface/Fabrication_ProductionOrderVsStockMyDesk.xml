@@ -20,21 +20,23 @@
  Last Changed By: $Author$
 
 -->
-<ui-menu xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>2d9723d0-fd27-4c97-8dfb-c31dd25021fb</uuid>
+    <uuid>9c78b8b0-49b3-4b38-9676-bb5c4117cfaf</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_MyDesk</name>
-        <icon>Fabrication_MyDeskImg</icon>
-        <childs>
-            <child>Fabrication_ProcessMyDesk</child>
-            <child>Sales_ProductionOrderMyDesk</child>
-            <child>Sales_UsageReportMyDesk</child>
-            <child>Sales_ProductionReportMyDesk</child>
-            <child>Fabrication_ProductionOrderVsStockMyDesk</child>
-        </childs>
+        <name>Fabrication_ProductionOrderVsStockMyDesk</name>
+        <access>
+            <role>Fabrication_Admin</role>
+            <role>Fabrication_Modifier</role>
+            <role>Fabrication_Reader</role>
+        </access>
+        <target>
+            <menu>Fabrication_ProductionOrderVsStockMyDesk_Menu</menu>
+            <form>Fabrication_ProductionOrderVsStockReportForm</form>
+        </target>
+        <property name="Target">content</property>
     </definition>
-</ui-menu>
+</ui-command>

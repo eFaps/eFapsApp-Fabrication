@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
+
+ Copyright 2003 - 2009 The eFaps Team
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+ Author:          The eFaps Team
+ Revision:        $Rev$
+ Last Changed:    $Date$
+ Last Changed By: $Author$
+
+-->
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+    <uuid>7bc40dd2-3bdb-4802-82e2-9e28d3524da9</uuid>
+    <file-application>eFapsApp-Fabrication</file-application>
+    <file-revision>$Rev$</file-revision>
+    <definition>
+        <version-expression>(version==latest)</version-expression>
+        <name>Fabrication_ProductionOrderVsStockMyDesk_Menu_DownloadExcel</name>
+        <icon>Document_Excel</icon>
+         <access>
+            <role>Fabrication_Admin</role>
+            <role>Fabrication_Modifier</role>
+            <role>Fabrication_Reader</role>
+        </access>
+        <target>
+            <execute method="exportReport" program="org.efaps.esjp.sales.report.RetentionReport">
+                <property name="Mime">xls</property>
+                <property name="FilterKey">org.efaps.esjp.sales.report.RetentionReport.FilterKey</property>
+                <property name="FilterKey">org.efaps.esjp.fabrication.report.ProductionOrderVsStockReport.FilterKey</property>
+                <property name="Type">Sales_ProductionOrder</property>
+                <property name="StatusGroup">Sales_ProductionOrderStatus</property>
+                <property name="Status">!Canceled</property>
+                <property name="Type01">Sales_ProductionOrder</property>
+                <property name="StatusGroup01">Sales_ProductionOrderStatus</property>
+                <property name="Status01">!Closed</property>
+            </execute>
+        </target>
+        <property name="Target">hidden</property>
+        <property name="TargetShowFile">true</property>
+        <property name="Label">report.DownloadExcel</property>
+    </definition>
+</ui-command>

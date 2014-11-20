@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
+
+ Copyright 2003 - 2014 The eFaps Team
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+ Author:          The eFaps Team
+ Revision:        $Rev$
+ Last Changed:    $Date$
+ Last Changed By: $Author$
+
+-->
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+    <uuid>5a1b9688-1e91-47d1-bba7-48ab626cd227</uuid>
+    <file-application>eFapsApp-Fabrication</file-application>
+    <file-revision>$Rev$</file-revision>
+    <definition>
+        <version-expression>(version==latest)</version-expression>
+        <name>Fabrication_ProcessTree_ProcessReport_Menu_CreateProductionReport</name>
+        <target>
+            <form>Sales_ProductionReportForm</form>
+         <execute method="create" program="org.efaps.esjp.sales.document.ProductionReport">
+                <property name="PositionType">Sales_ProductionReportPosition</property>
+                <property name="StatusGroup">Sales_ProductionReportStatus</property>
+                <property name="Status">Open</property>
+                <property name="UseNumberGenerator4Name">true</property>
+                <!-- Fabrication_Process2ProductionReport -->
+                <property name="ConnectType">59e72720-04c5-4443-add1-96c2ae97017a</property>
+                <property name="ConnectCurrentLink">ToLink</property>
+                <property name="ConnectForeignLink">FromLink</property>
+                <property name="ConnectForeignField">fabricationProcess</property>
+            </execute>
+            <validate program="org.efaps.esjp.sales.document.ProductionReport" method="validate" >
+                <property name="Validation">POSITION</property>
+                <property name="Validation01">QUANTITYGREATERZERO</property>
+            </validate>
+        </target>
+        <property name="Target">modal</property>
+        <property name="TargetCreateType">Sales_ProductionReport</property>
+        <property name="TargetMode">create</property>
+        <property name="WindowHeight">660</property>
+        <property name="WindowWidth">1200</property>
+        <property name="TargetDefaultMenu">none</property>
+        <property name="ShowStorage">true</property>
+    </definition>
+</ui-command>

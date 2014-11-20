@@ -20,6 +20,7 @@
 
 package org.efaps.esjp.fabrication.listener;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,11 +29,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.efaps.admin.datamodel.Dimension;
+import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.program.esjp.EFapsRevision;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.db.Instance;
+import org.efaps.db.MultiPrintQuery;
+import org.efaps.db.PrintQuery;
+import org.efaps.db.QueryBuilder;
+import org.efaps.db.SelectBuilder;
+import org.efaps.esjp.ci.CIFabrication;
 import org.efaps.esjp.ci.CIFormFabrication;
+import org.efaps.esjp.ci.CIFormSales;
+import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.ci.CITableSales;
 import org.efaps.esjp.common.listener.ITypedClass;
@@ -58,38 +68,105 @@ public abstract class OnCreateDocument_Base
     implements IOnCreateDocument
 {
 
-    /*
-     * (non-Javadoc)
-     * @see
-     * org.efaps.esjp.erp.listener.IOnCreateDocument#afterCreate(org.efaps.admin
-     * .event.Parameter, org.efaps.esjp.erp.CommonDocument_Base.CreatedDoc)
+    /**
+     * {@inheritDoc}
      */
     @Override
-    public void afterCreate(Parameter _parameter,
-                            CreatedDoc _createdDoc)
+    public void afterCreate(final Parameter _parameter,
+                            final CreatedDoc _createdDoc)
         throws EFapsException
     {
         // not used
     }
 
-    /*
-     * (non-Javadoc)
-     * @see
-     * org.efaps.esjp.erp.listener.IOnCreateDocument#getJavaScript4Doc(org.efaps
-     * .esjp.common.listener.ITypedClass, org.efaps.admin.event.Parameter)
+    /**
+     * {@inheritDoc}
      */
     @Override
-    public CharSequence getJavaScript4Doc(ITypedClass _typeClass,
-                                          Parameter _parameter)
+    public CharSequence getJavaScript4Doc(final ITypedClass _typeClass,
+                                          final Parameter _parameter)
         throws EFapsException
     {
         CharSequence ret = new String();
         if (_typeClass != null) {
             if (CISales.UsageReport.equals(_typeClass.getCIType())) {
                 ret = getJavaScript4UsageReport(_parameter);
+            } else if (CISales.ProductionReport.equals(_typeClass.getCIType())) {
+                ret = getJavaScript4ProductionReport(_parameter);
             }
         }
         return ret;
+    }
+
+    /**
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return JavaScript
+     * @throws EFapsException on error
+     */
+    protected CharSequence getJavaScript4ProductionReport(final Parameter _parameter)
+        throws EFapsException
+    {
+        final StringBuilder js = new StringBuilder();
+        final Instance inst = _parameter.getInstance();
+        if (inst.getType().isKindOf(CIFabrication.ProcessAbstract)) {
+            final PrintQuery print = new PrintQuery(inst);
+            print.addAttribute(CIFabrication.ProcessAbstract.Name);
+            print.executeWithoutAccessCheck();
+
+            final String name = print.<String>getAttribute(CIFabrication.ProcessAbstract.Name);
+
+            js.append(getSetFieldValue(0, CIFormSales.Sales_ProductionReportForm.fabricationProcess.name,
+                            inst.getOid(), name));
+
+            final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
+
+            final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionOrder);
+            attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionOrder.FromLink, inst);
+
+            final QueryBuilder queryBldr = new QueryBuilder(CISales.ProductionOrderPosition);
+            queryBldr.addWhereAttrInQuery(CISales.ProductionOrderPosition.DocumentAbstractLink,
+                            attrQueryBldr.getAttributeQuery(CIFabrication.Process2ProductionOrder.ToLink));
+            final MultiPrintQuery multi = queryBldr.getPrint();
+            final SelectBuilder selProd = SelectBuilder.get().linkto(CISales.ProductionOrderPosition.Product);
+            final SelectBuilder selProdInst = new SelectBuilder(selProd).instance();
+            final SelectBuilder selProdName = new SelectBuilder(selProd).attribute(CIProducts.ProductAbstract.Name);
+            final SelectBuilder selProdDescr = new SelectBuilder(selProd)
+                            .attribute(CIProducts.ProductAbstract.Description);
+            multi.addSelect(selProdInst, selProdName, selProdDescr);
+            multi.addAttribute(CISales.ProductionOrderPosition.UoM, CISales.ProductionOrderPosition.Quantity);
+            multi.execute();
+            final List<Map<String, Object>> values = new ArrayList<Map<String, Object>>();
+
+            while (multi.next()) {
+                final Map<String, Object> map = new HashMap<String, Object>();
+                final UoM uom = Dimension.getUoM(multi.<Long>getAttribute(CISales.ProductionOrderPosition.UoM));
+
+                final StringBuilder jsUoM = new StringBuilder("new Array('").append(uom.getId()).append("','").
+                                append(uom.getId()).append("','").append(uom.getName()).append("')");
+                map.put(CITableSales.Sales_ProductionReportPositionTable.quantity.name, qtyFrmt.format(multi
+                                .<BigDecimal>getAttribute(CISales.ProductionOrderPosition.Quantity)));
+                map.put(CITableSales.Sales_ProductionReportPositionTable.product.name, new String[] {
+                                multi.<Instance>getSelect(selProdInst).getOid(),
+                                multi.<String>getSelect(selProdName) });
+                map.put(CITableSales.Sales_ProductionReportPositionTable.productDesc.name,
+                                multi.<String>getSelect(selProdDescr));
+                map.put(CITableSales.Sales_ProductionReportPositionTable.uoM.name, jsUoM);
+
+                values.add(map);
+            }
+            final Set<String> noEscape = new HashSet<String>();
+            noEscape.add("uoM");
+
+            final StringBuilder readOnlyFields = getSetFieldReadOnlyScript(_parameter,
+                            CITableSales.Sales_ProductionReportPositionTable.quantity.name,
+                            CITableSales.Sales_ProductionReportPositionTable.product.name,
+                            CITableSales.Sales_ProductionReportPositionTable.productDesc.name,
+                            CIFormSales.Sales_ProductionReportForm.fabricationProcess.name);
+            js.append(getTableRemoveScript(_parameter, "positionTable", false, false))
+                            .append(getTableAddNewRowsScript(_parameter, "positionTable", values,
+                                            readOnlyFields, false, false, noEscape));
+        }
+        return js;
     }
 
     protected CharSequence getJavaScript4UsageReport(final Parameter _parameter)
@@ -100,10 +177,9 @@ public abstract class OnCreateDocument_Base
                         .getParameterValue(CIFormFabrication.Fabrication_ProcessTree_CreateUsageReportForm.storage.name);
         final Map<Instance, BOMBean> ins2map = new Process().getInstance2BOMMap(_parameter);
         final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
-        String uomID = null;
         final List<Map<String, Object>> values = new ArrayList<Map<String, Object>>();
 
-        for (BOMBean mat : ins2map.values()) {
+        for (final BOMBean mat : ins2map.values()) {
             final Map<String, Object> map = new HashMap<String, Object>();
             final StringBuilder jsUoM = new StringBuilder("new Array('").append(mat.getUomID()).append("','").
                             append(mat.getUomID()).append("','").append(mat.getUom()).append("')");
@@ -115,7 +191,6 @@ public abstract class OnCreateDocument_Base
             map.put(CITableSales.Sales_UsageReportPositionTable.uoM.name, jsUoM);
             map.put(CITableSales.Sales_UsageReportPositionTable.quantityInStock.name,
                             getStock4ProductInStorage(_parameter, mat.getMatInstance(), Instance.get(storage)));
-            uomID = String.valueOf(mat.getUomID());
             values.add(map);
         }
         final Set<String> noEscape = new HashSet<String>();
@@ -128,7 +203,6 @@ public abstract class OnCreateDocument_Base
         js.append(getTableRemoveScript(_parameter, "positionTable", false, false))
                         .append(getTableAddNewRowsScript(_parameter, "positionTable", values,
                                         readOnlyFields, false, false, noEscape));
-
         return js;
     }
 

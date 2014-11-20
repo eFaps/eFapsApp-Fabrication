@@ -32,6 +32,7 @@
             <child>Fabrication_ProcessTree_ProcessReport_Menu_DownloadExcel</child>
             <child>Fabrication_ProcessTree_ProcessReport_Menu_DownloadPDF</child>
             <child>Fabrication_ProcessTree_ProcessReport_Menu_RegisterCost</child>
+            <child>Fabrication_ProcessTree_ProcessReport_Menu_CreateProductionReport</child>
         </childs>
     </definition>
 </ui-menu>

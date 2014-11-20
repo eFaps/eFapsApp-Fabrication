@@ -35,9 +35,8 @@
             <role>Fabrication_Reader</role>
         </access>
         <target>
-            <execute method="exportReport" program="org.efaps.esjp.sales.report.RetentionReport">
+            <execute method="exportReport" program="org.efaps.esjp.fabrication.report.ProductionOrderVsStockReport">
                 <property name="Mime">xls</property>
-                <property name="FilterKey">org.efaps.esjp.sales.report.RetentionReport.FilterKey</property>
                 <property name="FilterKey">org.efaps.esjp.fabrication.report.ProductionOrderVsStockReport.FilterKey</property>
                 <property name="Type">Sales_ProductionOrder</property>
                 <property name="StatusGroup">Sales_ProductionOrderStatus</property>

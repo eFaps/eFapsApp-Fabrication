@@ -34,6 +34,8 @@ import net.sf.dynamicreports.report.builder.crosstab.CrosstabBuilder;
 import net.sf.dynamicreports.report.builder.crosstab.CrosstabColumnGroupBuilder;
 import net.sf.dynamicreports.report.builder.crosstab.CrosstabMeasureBuilder;
 import net.sf.dynamicreports.report.builder.crosstab.CrosstabRowGroupBuilder;
+import net.sf.dynamicreports.report.builder.style.ConditionalStyleBuilder;
+import net.sf.dynamicreports.report.builder.style.StyleBuilder;
 import net.sf.dynamicreports.report.constant.Calculation;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -136,6 +138,7 @@ public abstract class ProductionOrderVsStockReport_Base
         {
             final List<DataBean> datasource = new ArrayList<>();
             final Map<Instance, String> products = new HashMap<>();
+            final Map<Instance, BigDecimal> quantities = new HashMap<>();
 
             final QueryBuilder attrQueryBldr = getQueryBldrFromProperties(_parameter);
 
@@ -154,7 +157,7 @@ public abstract class ProductionOrderVsStockReport_Base
             multi.addAttribute(CISales.PositionAbstract.Quantity);
             multi.execute();
             while (multi.next()) {
-                final BigDecimal quantity = multi.getAttribute(CISales.PositionAbstract.Quantity);
+                BigDecimal quantity = multi.getAttribute(CISales.PositionAbstract.Quantity);
                 final Instance prodInst = multi.getSelect(selProdInst);
                 final String prodName = multi.getSelect(selProdName);
                 final String docName = multi.getSelect(selDocName);
@@ -165,6 +168,11 @@ public abstract class ProductionOrderVsStockReport_Base
                                 .setDoc(docName).setQuantity(quantity);
                 datasource.add(bean);
                 products.put(prodInst, prodName + " " + prodDescr);
+
+                if (quantities.containsKey(prodInst)) {
+                    quantity = quantity.add(quantities.get(prodInst));
+                }
+                quantities.put(prodInst, quantity);
             }
 
             for (final Entry<Instance, String> entry : products.entrySet()) {
@@ -185,6 +193,14 @@ public abstract class ProductionOrderVsStockReport_Base
                                                                 + ".QuantityOnPaper"))
                                 .setQuantity(bomCalc.getQuantityOnPaper());
                 datasource.add(bean2);
+                final DataBean bean3 = new DataBean()
+                                .setProductInstance(entry.getKey())
+                                .setProduct(entry.getValue())
+                                .setDoc(DBProperties
+                                                .getProperty(ProductionOrderVsStockReport.class.getName()
+                                                                + ".Total"))
+                                .setQuantity(quantities.get(entry.getKey()));
+                datasource.add(bean3);
             }
 
             return new JRBeanCollectionDataSource(datasource);
@@ -201,8 +217,15 @@ public abstract class ProductionOrderVsStockReport_Base
             final CrosstabColumnGroupBuilder<String> docGroup = DynamicReports.ctab
                             .columnGroup("doc", String.class).setShowTotal(false);
 
-            final CrosstabMeasureBuilder<String> quantityMeasure = DynamicReports.ctab.measure("quantity",
+            final CrosstabMeasureBuilder<BigDecimal> quantityMeasure = DynamicReports.ctab.measure("quantity",
                             BigDecimal.class, Calculation.SUM);
+
+            final ConditionalStyleBuilder condition1 = DynamicReports.stl.conditionalStyle(
+                            DynamicReports.cnd.greater(quantityMeasure, 0)).setBold(true);
+            final StyleBuilder quantityStyle = DynamicReports.stl.style().conditionalStyles(condition1)
+                            .setBorder(DynamicReports.stl.pen1Point());
+
+            quantityMeasure.setStyle(quantityStyle);
 
             crosstab.headerCell(DynamicReports.cmp.text(DBProperties
                             .getProperty(ProductionOrderVsStockReport.class.getName() + ".HeaderCell"))

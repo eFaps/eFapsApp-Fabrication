@@ -35,7 +35,7 @@
             <role>Fabrication_Reader</role>
         </access>
         <target>
-            <execute method="exportReport" program="org.efaps.esjp.sales.report.RetentionReport">
+            <execute method="exportReport" program="org.efaps.esjp.fabrication.report.ProductionOrderVsStockReport">
                 <property name="Mime">pdf</property>
                 <property name="PageType">A4</property>
                 <property name="PageOrientation">LANDSCAPE</property>

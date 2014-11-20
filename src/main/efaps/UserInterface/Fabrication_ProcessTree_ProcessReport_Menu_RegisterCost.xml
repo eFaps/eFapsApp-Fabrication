@@ -29,7 +29,6 @@
         <version-expression>(version==latest)</version-expression>
         <name>Fabrication_ProcessTree_ProcessReport_Menu_RegisterCost</name>
         <target>
-            <form>Fabrication_ProcessTree_RegisterCostForm</form>
             <execute method="registerCost" program="org.efaps.esjp.fabrication.Process"/>
         </target>
         <property name="Target">hidden</property>

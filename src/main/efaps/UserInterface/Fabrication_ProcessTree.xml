@@ -38,9 +38,9 @@
         <type>Fabrication_Process</type>
         <childs>
             <child>Fabrication_ProcessTree_Documents</child>
+            <child>Fabrication_ProcessTree_ProcessReport</child>
             <child>Fabrication_ProcessTree_ProductionOrderReport</child>
             <child>Fabrication_ProcessTree_UsageReport</child>
-            <child>Fabrication_ProcessTree_ProcessReport</child>
         </childs>
         <property name="Target">content</property>
         <property name="TargetMode">view</property>
@@ -58,9 +58,9 @@
         <type>Fabrication_Process</type>
         <childs>
             <child>Fabrication_ProcessTree_Documents</child>
+            <child>Fabrication_ProcessTree_ProcessReport</child>
             <child>Fabrication_ProcessTree_ProductionOrderReport</child>
             <child>Fabrication_ProcessTree_UsageReport</child>
-            <child>Fabrication_ProcessTree_ProcessReport</child>
             <child>Fabrication_ProcessTree_File</child>
         </childs>
         <property name="Target">content</property>

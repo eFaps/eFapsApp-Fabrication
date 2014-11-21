@@ -34,6 +34,10 @@
         </access>
         <target>
             <form>Fabrication_ProcessForm</form>
+            <evaluate method="validateStatus" program="org.efaps.esjp.common.uiform.Evaluate">
+                <property name="StatusGroup">Sales_ProductionOrderStatus</property>
+                <property name="Status">Open</property>
+            </evaluate>
             <execute method="create" program="org.efaps.esjp.fabrication.Process">
                 <property name="UseNumberGenerator4Name">true</property>
                 <property name="StatusGroup">Fabrication_ProcessStatus</property>

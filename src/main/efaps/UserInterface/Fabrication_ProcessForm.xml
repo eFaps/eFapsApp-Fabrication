@@ -62,6 +62,8 @@
                      name="Fabrication_ProcessForm/productionOrder.UI_FIELD_AUTOCOMPLETE"
                      event="UI_FIELD_AUTOCOMPLETE">
                 <property name="Type">Sales_ProductionOrder</property>
+                <property name="StatusGroup">Sales_ProductionOrderStatus</property>
+                <property name="Status">Open</property>
             </trigger>
             <trigger program="org.efaps.esjp.sales.document.ProductionOrder"
                      method="updateFields4Document"

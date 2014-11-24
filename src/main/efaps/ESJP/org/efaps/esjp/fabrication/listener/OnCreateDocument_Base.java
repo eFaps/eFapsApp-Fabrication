@@ -108,7 +108,7 @@ public abstract class OnCreateDocument_Base
     {
         final StringBuilder js = new StringBuilder();
         final Instance inst = _parameter.getInstance();
-        if (inst.getType().isKindOf(CIFabrication.ProcessAbstract)) {
+        if (inst != null && inst.isValid() && inst.getType().isKindOf(CIFabrication.ProcessAbstract)) {
             final PrintQuery print = new PrintQuery(inst);
             print.addAttribute(CIFabrication.ProcessAbstract.Name);
             print.executeWithoutAccessCheck();
@@ -169,6 +169,11 @@ public abstract class OnCreateDocument_Base
         return js;
     }
 
+    /**
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return JavaScript
+     * @throws EFapsException on error
+     */
     protected CharSequence getJavaScript4UsageReport(final Parameter _parameter)
         throws EFapsException
     {
@@ -218,7 +223,6 @@ public abstract class OnCreateDocument_Base
         throws EFapsException
     {
         return new Clase().getStock4ProductInStorage(_parameter, _productinst, _storageInst);
-
     }
 
     public class Clase

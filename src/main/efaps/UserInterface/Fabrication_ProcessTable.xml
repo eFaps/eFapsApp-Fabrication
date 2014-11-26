@@ -52,6 +52,14 @@
             <property name="FilterDefault">Open</property>
             <property name="Label">Fabrication_Process/StatusAbstract.Label</property>
         </field>
+        <field name="summary">
+            <property name="Label">Fabrication_ProcessTable.summary.Label</property>
+            <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
+            <trigger program="org.efaps.esjp.fabrication.Process"
+                method="getSummaryFieldValue"
+                name="Fabrication_ProcessTable.summary.UI_FIELD_VALUE"
+                event="UI_FIELD_VALUE"></trigger>
+        </field>
         <field name="buttonOpenInNewWindow">
             <icon>eFapsActionNewWindow</icon>
             <property name="HRef">${COMMONURL}/MenuTree.jsp</property>

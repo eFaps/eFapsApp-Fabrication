@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.efaps.admin.datamodel.Dimension;
+import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.datamodel.Status;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Parameter.ParameterValues;
@@ -60,6 +62,7 @@ import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.ProductBean;
 import org.efaps.esjp.fabrication.util.Fabrication;
 import org.efaps.esjp.fabrication.util.FabricationSettings;
 import org.efaps.esjp.products.Storage;
+import org.efaps.esjp.products.Transaction_Base;
 import org.efaps.ui.wicket.util.EFapsKey;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
@@ -76,6 +79,9 @@ import org.joda.time.DateTime;
 public abstract class Process_Base
     extends CommonDocument
 {
+
+    protected static String REQUESTKEY = Process.class.getName() + ".RequestKey";
+
 
     public Return registerCost(final Parameter _parameter)
         throws EFapsException
@@ -290,6 +296,74 @@ public abstract class Process_Base
         ret.put(ReturnValues.VALUES, list);
         return ret;
     }
+
+    /**
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return listmap for fieldupdate event
+     * @throws EFapsException on error
+     */
+    @SuppressWarnings("unchecked")
+    public Return getSummaryFieldValue(final Parameter _parameter)
+        throws EFapsException
+    {
+        final Return ret = new Return();
+        Map<Instance, String> values;
+        if (Context.getThreadContext().containsRequestAttribute(Transaction_Base.REQUESTKEY)) {
+            values = (Map<Instance, String>) Context.getThreadContext().getRequestAttribute(
+                            Process.REQUESTKEY);
+        } else {
+            values = new HashMap<>();
+            Context.getThreadContext().setRequestAttribute(Process.REQUESTKEY, values);
+
+            final List<Instance> instances = (List<Instance>) _parameter.get(ParameterValues.REQUEST_INSTANCES);
+
+            final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionOrder);
+            attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionOrder.FromLink, instances.toArray());
+
+            final QueryBuilder queryBldr = new QueryBuilder(CISales.ProductionOrderPosition);
+            queryBldr.addWhereAttrInQuery(CISales.ProductionOrderPosition.DocumentAbstractLink,
+                            attrQueryBldr.getAttributeQuery(CIFabrication.Process2ProductionOrder.ToLink));
+            final MultiPrintQuery multi = queryBldr.getPrint();
+            final SelectBuilder selProcessInst = SelectBuilder.get()
+                            .linkto(CISales.ProductionOrderPosition.DocumentAbstractLink)
+                            .linkfrom(CIFabrication.Process2ProductionOrder.ToLink)
+                            .linkto(CIFabrication.Process2ProductionOrder.FromLink).instance();
+            final SelectBuilder selProdName = SelectBuilder.get()
+                            .linkto(CISales.ProductionOrderPosition.Product)
+                            .attribute(CIProducts.ProductAbstract.Name);
+            final SelectBuilder selProdDescr = SelectBuilder.get()
+                            .linkto(CISales.ProductionOrderPosition.Product)
+                            .attribute(CIProducts.ProductAbstract.Description);
+            multi.addSelect(selProcessInst, selProdName, selProdDescr);
+            multi.addAttribute(CISales.ProductionOrderPosition.Quantity, CISales.ProductionOrderPosition.UoM);
+            multi.executeWithoutAccessCheck();
+            while (multi.next()) {
+                final Object processObj = multi.getSelect(selProcessInst);
+                List<Instance> processInsts = new ArrayList<>();
+                if (processObj instanceof Instance) {
+                    processInsts.add((Instance) processObj);
+                } else {
+                    processInsts = (List<Instance>) processObj;
+                }
+                for (final Instance inst : processInsts) {
+                    final StringBuilder str = new StringBuilder();
+                    if (values.containsKey(inst)) {
+                        str.append(values.get(inst)).append("\n ");
+                    }
+                    final String prodName = multi.getSelect(selProdName);
+                    final String prodDescr = multi.getSelect(selProdDescr);
+                    final BigDecimal quanity = multi.getAttribute(CISales.ProductionOrderPosition.Quantity);
+                    final UoM uom  = Dimension.getUoM(multi.<Long>getAttribute(CISales.ProductionOrderPosition.UoM));
+                    str.append(quanity).append(uom.getName()).append(" - ")
+                        .append(prodName).append(" ").append(prodDescr);
+                    values.put(inst, str.toString());
+                }
+            }
+        }
+        ret.put(ReturnValues.VALUES, values.get(_parameter.getInstance()));
+        return ret;
+    }
+
 
     /**
      * @param _parameter Parameter as passed by the eFaps API

@@ -39,5 +39,5 @@ import org.efaps.admin.program.esjp.EFapsUUID;
 public class Process
     extends Process_Base
 {
-
+    public static String REQUESTKEY = Process_Base.REQUESTKEY;
 }

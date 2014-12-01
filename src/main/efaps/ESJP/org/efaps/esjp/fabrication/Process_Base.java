@@ -44,6 +44,7 @@ import org.efaps.db.MultiPrintQuery;
 import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
+import org.efaps.db.Update;
 import org.efaps.esjp.ci.CIFabrication;
 import org.efaps.esjp.ci.CIFormFabrication;
 import org.efaps.esjp.ci.CIProducts;
@@ -425,6 +426,35 @@ public abstract class Process_Base
         }
         return ret;
     }
+
+
+    public Return trigger4Rel2ProductionOrder(final Parameter _parameter)
+        throws EFapsException
+    {
+        final PrintQuery print = new PrintQuery(_parameter.getInstance());
+        final SelectBuilder selInst = SelectBuilder.get().linkto(CIFabrication.Process2ProductionOrder.ToLinkAbstract)
+                        .instance();
+        final SelectBuilder selStatus = SelectBuilder.get().linkto(CIFabrication.Process2ProductionOrder.ToLinkAbstract)
+                        .attribute(CISales.ProductionOrder.Status);
+        print.addSelect(selInst, selStatus);
+        print.execute();
+
+        Status newStatus = null;
+        final Status currStatus = Status.get(print.<Long>getSelect(selStatus));
+        if (currStatus.equals(Status.find(CISales.ProductionOrderStatus.Closed))) {
+            newStatus = Status.find(CISales.ProductionOrderStatus.Open);
+        } else if (currStatus.equals(Status.find(CISales.ProductionOrderStatus.Open))) {
+            newStatus = Status.find(CISales.ProductionOrderStatus.Closed);
+        }
+        if (newStatus != null) {
+            final Update update = new Update(print.<Instance>getSelect(selInst));
+            update.add(CISales.ProductionOrder.Status, newStatus);
+            update.executeWithoutTrigger();
+        }
+        return new Return();
+    }
+
+
 
     /**
      * @param _parameter Parameter as passed by the eFaps API

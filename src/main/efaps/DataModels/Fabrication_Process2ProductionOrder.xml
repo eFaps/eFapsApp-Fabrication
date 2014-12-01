@@ -44,5 +44,13 @@
             <sqltable>Fabrication_Process2ObjectSQLTable</sqltable>
             <sqlcolumn>TOID</sqlcolumn>
         </attribute>
+        <trigger program="org.efaps.esjp.fabrication.Process"
+            method="trigger4Rel2ProductionOrder"
+            name="Fabrication_Process2ProductionOrder.INSERT_POST"
+            event="INSERT_POST"></trigger>
+        <trigger program="org.efaps.esjp.fabrication.Process"
+            method="trigger4Rel2ProductionOrder"
+            name="Fabrication_Process2ProductionOrder.DELETE_PRE"
+            event="DELETE_PRE"></trigger>
     </definition>
 </datamodel-type>

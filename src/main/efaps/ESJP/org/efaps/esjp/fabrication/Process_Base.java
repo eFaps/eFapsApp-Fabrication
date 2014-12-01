@@ -30,6 +30,7 @@ import java.util.TreeMap;
 import org.efaps.admin.datamodel.Dimension;
 import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.datamodel.Status;
+import org.efaps.admin.dbproperty.DBProperties;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Parameter.ParameterValues;
 import org.efaps.admin.event.Return;
@@ -353,9 +354,9 @@ public abstract class Process_Base
                     final String prodName = multi.getSelect(selProdName);
                     final String prodDescr = multi.getSelect(selProdDescr);
                     final BigDecimal quanity = multi.getAttribute(CISales.ProductionOrderPosition.Quantity);
-                    final UoM uom  = Dimension.getUoM(multi.<Long>getAttribute(CISales.ProductionOrderPosition.UoM));
-                    str.append(quanity).append(uom.getName()).append(" - ")
-                        .append(prodName).append(" ").append(prodDescr);
+                    final UoM uom = Dimension.getUoM(multi.<Long>getAttribute(CISales.ProductionOrderPosition.UoM));
+                    str.append(DBProperties.getFormatedDBProperty(Process.class.getName() + ".Summary",
+                                    new Object[] { quanity, uom.getName(), prodName, prodDescr }));
                     values.put(inst, str.toString());
                 }
             }

@@ -30,6 +30,7 @@
         <name>Fabrication_ProcessTree_ProductionOrderReport</name>
         <access>
             <role>Fabrication_Admin</role>
+            <role>Fabrication_Manager</role>
         </access>
         <target>
             <menu>Fabrication_ProcessTree_ProductionOrderReport_Menu</menu>

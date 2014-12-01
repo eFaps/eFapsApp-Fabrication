@@ -30,6 +30,8 @@
         <name>Fabrication_ProcessTree_ProcessReport</name>
         <access>
             <role>Fabrication_Admin</role>
+            <role>Fabrication_Manager</role>
+            <role>Fabrication_Modifier</role>
         </access>
         <target>
             <menu>Fabrication_ProcessTree_ProcessReport_Menu</menu>

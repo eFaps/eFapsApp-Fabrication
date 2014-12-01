@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
 import net.sf.dynamicreports.report.builder.DynamicReports;
@@ -55,6 +56,8 @@ import org.efaps.admin.event.Return;
 import org.efaps.admin.event.Return.ReturnValues;
 import org.efaps.admin.program.esjp.EFapsRevision;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.admin.user.Role;
+import org.efaps.db.Context;
 import org.efaps.db.Instance;
 import org.efaps.db.MultiPrintQuery;
 import org.efaps.db.PrintQuery;
@@ -361,24 +364,29 @@ public abstract class ProcessReport_Base
                                     .append(bean.getProdName()).append(" ").append(bean.getProdDescription());
                 }
             }
-            getReport().addTitle(DynamicReports.cmp.verticalList(DynamicReports.cmp.text(order.toString()),
-                            DynamicReports.cmp.text(fabrication.toString())));
+            final StyleBuilder style = DynamicReports.stl.style().setBold(true).setFontSize(14);
+            getReport().addTitle(
+                            DynamicReports.cmp.verticalList(DynamicReports.cmp.text(order.toString()).setStyle(style),
+                                            DynamicReports.cmp.text(fabrication.toString()).setStyle(style)));
         }
 
         protected void createSummary(final Parameter _parameter,
                                      final ValuesBean _values)
             throws EFapsException
         {
-            _values.calculateCost();
-            final VerticalListBuilder vl = DynamicReports.cmp.verticalList();
-            for (final DataBean parentBean : _values.getParaMap().values()) {
-                final StringBuilder bldr = new StringBuilder()
-                                .append(parentBean.getUnitCost())
-                                .append(" ").append(parentBean.getProdName()).append(" ")
-                                .append(parentBean.getProdDescription());
-                vl.add(DynamicReports.cmp.text(bldr.toString()));
+            if ( showCost(_parameter)) {
+                _values.calculateCost();
+                final StyleBuilder style = DynamicReports.stl.style().setBold(true).setFontSize(14);
+                final VerticalListBuilder vl = DynamicReports.cmp.verticalList();
+                for (final DataBean parentBean : _values.getParaMap().values()) {
+                    final StringBuilder bldr = new StringBuilder()
+                                    .append(parentBean.getUnitCost())
+                                    .append(" ").append(parentBean.getProdName()).append(" ")
+                                    .append(parentBean.getProdDescription());
+                    vl.add(DynamicReports.cmp.text(bldr.toString()).setStyle(style));
+                }
+                getReport().addSummary(vl);
             }
-            getReport().addSummary(vl);
         }
 
         @Override
@@ -386,6 +394,8 @@ public abstract class ProcessReport_Base
                                           final JasperReportBuilder _builder)
             throws EFapsException
         {
+            final boolean cost = showCost(_parameter);
+
             final TextColumnBuilder<String> prodNameColumn = DynamicReports.col.column(DBProperties
                             .getProperty(ProcessReport.class.getName() + ".Column.ProdName"),
                             "prodName", DynamicReports.type.stringType());
@@ -433,13 +443,13 @@ public abstract class ProcessReport_Base
                             .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Prod"));
             final ColumnTitleGroupBuilder orderGrid = DynamicReports.grid.titleGroup(DBProperties
                             .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Order")
-                            , orderQuantityColumn, orderCostColumn);
+                            , orderQuantityColumn);
             final ColumnTitleGroupBuilder usageGrid = DynamicReports.grid.titleGroup(DBProperties
                             .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Usage")
-                            , usageQuantityColumn, usageCostColumn);
+                            , usageQuantityColumn);
             final ColumnTitleGroupBuilder fabricatedGrid = DynamicReports.grid.titleGroup(DBProperties
                             .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Fabricated"),
-                            fabricatedQuantityColumn, fabricatedCostColumn);
+                            fabricatedQuantityColumn);
 
             final ColumnTitleGroupBuilder analysisGrid = DynamicReports.grid.titleGroup(DBProperties
                             .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Analysis"),
@@ -469,17 +479,37 @@ public abstract class ProcessReport_Base
             prodGrid.add(prodNameColumn, prodDescriptionColumn, prodUoMColumn);
 
             _builder.setFloatColumnFooter(true)
-                            .addSubtotalAtSummary(DynamicReports.sbt.sum(orderCostColumn))
-                            .addSubtotalAtSummary(DynamicReports.sbt.sum(usageCostColumn))
-                            .addSubtotalAtSummary(DynamicReports.sbt.sum(fabricatedCostColumn));
-            ;
+                            .columnGrid(prodGrid, orderGrid, fabricatedGrid, usageGrid, analysisGrid);
+            if (cost) {
+                orderGrid.add(orderCostColumn);
+                fabricatedGrid.add(fabricatedCostColumn);
+                usageGrid.add(usageCostColumn);
+                _builder.addSubtotalAtSummary(DynamicReports.sbt.sum(orderCostColumn))
+                                .addSubtotalAtSummary(DynamicReports.sbt.sum(usageCostColumn))
+                                .addSubtotalAtSummary(DynamicReports.sbt.sum(fabricatedCostColumn))
+                                .addColumn(prodNameColumn, prodDescriptionColumn, prodUoMColumn,
+                                                orderQuantityColumn, orderCostColumn,
+                                                fabricatedQuantityColumn, fabricatedCostColumn,
+                                                usageQuantityColumn, usageCostColumn,
+                                                percentColumn, differenceColumn);
+            } else {
+                _builder.addColumn(prodNameColumn, prodDescriptionColumn, prodUoMColumn,
+                                orderQuantityColumn,
+                                fabricatedQuantityColumn,
+                                usageQuantityColumn,
+                                percentColumn, differenceColumn);
+            }
+        }
 
-            _builder.columnGrid(prodGrid, orderGrid, fabricatedGrid, usageGrid, analysisGrid)
-                            .addColumn(prodNameColumn, prodDescriptionColumn, prodUoMColumn,
-                                            orderQuantityColumn, orderCostColumn,
-                                            fabricatedQuantityColumn, fabricatedCostColumn,
-                                            usageQuantityColumn, usageCostColumn,
-                                            percentColumn, differenceColumn);
+        protected boolean showCost(final Parameter _parameter)
+            throws EFapsException
+        {
+            // Fabrication_Admin, Fabrication_Manager
+            return Context.getThreadContext().getPerson()
+                            .isAssigned(Role.get(UUID.fromString("1e3b0378-cb3b-411e-b4c0-9b88e97a0209")))
+                            || Context.getThreadContext().getPerson()
+                                            .isAssigned(Role.get(UUID
+                                                            .fromString("fe489cb2-94ec-442d-975f-36d0f4fbc589")));
         }
 
     }

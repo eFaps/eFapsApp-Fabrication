@@ -28,6 +28,10 @@
     <definition>
         <version-expression>(version==latest)</version-expression>
         <name>Fabrication_ProcessTree_ProcessReport_Menu_RegisterCost</name>
+        <access>
+            <role>Fabrication_Admin</role>
+            <role>Fabrication_Manager</role>
+        </access>
         <target>
             <execute method="registerCost" program="org.efaps.esjp.fabrication.Process"/>
         </target>

@@ -45,9 +45,15 @@ public interface FabricationSettings
      */
     String ONEPROD4PROCESS = FabricationSettings.BASE + "OneProductPerProcess";
 
-
     /**
      * validate that there is only one product used per process.
      */
     String PRODORDERCONTACT = FabricationSettings.BASE + "ProductionOrderHasContact";
+
+    /**
+     * Boolean.
+     * Set which table to show.
+     */
+    String PRODORDERDETAIL = FabricationSettings.BASE + "ProductionOrderShowDetail";
+
 }

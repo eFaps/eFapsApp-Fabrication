@@ -32,6 +32,7 @@
         <childs>
             <child>Fabrication_ProcessMyDesk</child>
             <child>Sales_ProductionOrderMyDesk</child>
+            <child>Fabrication_Sales_ProductionOrderMyDesk</child>
             <child>Sales_UsageReportMyDesk</child>
             <child>Sales_ProductionReportMyDesk</child>
             <child>Fabrication_ProductionOrderVsStockMyDesk</child>

@@ -22,12 +22,12 @@
 -->
 <ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>d1352074-ec46-4106-8cc0-34e96535a017</uuid>
+    <uuid>40b4940f-d28b-416c-8461-12ea5ea74ba3</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_Sales_ProductionOrderMyDesk_Menu_Action_CreateProcess</name>
+        <name>Fabrication_Sales_ProductionOrderMyDesk_Menu_Action_CreateProcess4Pos</name>
         <access>
             <role>Fabrication_Admin</role>
             <role>Fabrication_Modifier</role>
@@ -37,8 +37,9 @@
             <evaluate method="validateStatus" program="org.efaps.esjp.common.uiform.Evaluate">
                 <property name="StatusGroup">Sales_ProductionOrderStatus</property>
                 <property name="Status">Open</property>
+                <property name="Select4Instance">linkto[ProductionOrderLink].instance</property>
             </evaluate>
-            <execute method="create" program="org.efaps.esjp.fabrication.Process" index="0">
+            <execute index="0" method="create" program="org.efaps.esjp.fabrication.Process">
                 <property name="UseNumberGenerator4Name">true</property>
                 <property name="StatusGroup">Fabrication_ProcessStatus</property>
                 <property name="Status">Open</property>
@@ -58,12 +59,13 @@
                  <!-- Fabrication-Configuration -->
                 <property name="SystemConfig">660188ee-c160-44a1-879b-81595594bfa6</property>
                 <property name="Attribute">org.efaps.fabrication.ProductionOrderShowDetail</property>
-                <property name="Inverse">true</property>
             </trigger>
         </target>
         <property name="Target">modal</property>
         <property name="TargetCreateType">Fabrication_Process</property>
         <property name="TargetMode">create</property>
         <property name="Submit">true</property>
+        <property name="Label">Fabrication_Sales_ProductionOrderMyDesk_Menu_Action_CreateProcess.Label</property>
+        <property name="TargetTitle">Fabrication_Sales_ProductionOrderMyDesk_Menu_Action_CreateProcess.Title</property>
     </definition>
 </ui-command>

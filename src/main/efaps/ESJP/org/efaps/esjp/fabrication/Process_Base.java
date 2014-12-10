@@ -534,6 +534,18 @@ public abstract class Process_Base
                 print.execute();
                 ret.append(getSetFieldValue(0, CIFormFabrication.Fabrication_ProcessForm.productionOrder.name,
                                 inst.getOid(), print.<String>getAttribute(CISales.ProductionOrder.Name)));
+            } else if (inst.isValid() && inst.getType().isCIType(CISales.ProductionOrderPosition)) {
+                final PrintQuery print = new PrintQuery(inst);
+                final SelectBuilder selInst = SelectBuilder.get()
+                                .linkto(CISales.ProductionOrderPosition.ProductionOrderLink).instance();
+                final SelectBuilder selName = SelectBuilder.get()
+                                .linkto(CISales.ProductionOrderPosition.ProductionOrderLink)
+                                .attribute(CISales.ProductionOrder.Name);
+                print.addSelect(selInst, selName);
+                print.execute();
+                ret.append(getSetFieldValue(0, CIFormFabrication.Fabrication_ProcessForm.productionOrder.name,
+                                print.<Instance>getSelect(selInst).getOid(),
+                                print.<String>getSelect(selName)));
             }
         }
         return ret;

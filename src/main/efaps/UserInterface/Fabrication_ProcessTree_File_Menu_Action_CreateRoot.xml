@@ -32,8 +32,9 @@
         </application-dependencies>
         <name>Fabrication_ProcessTree_File_Menu_Action_CreateRoot</name>
         <access>
-            <role>Archives_Admin</role>
-            <role>Archives_Modifier</role>
+            <role>Fabrication_Admin</role>
+            <role>Fabrication_Manager</role>
+            <role>Fabrication_Modifier</role>
         </access>
         <target>
             <form>Archives_ArchiveRootForm</form>

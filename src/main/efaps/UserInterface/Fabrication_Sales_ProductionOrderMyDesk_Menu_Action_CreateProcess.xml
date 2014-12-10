@@ -38,7 +38,7 @@
                 <property name="StatusGroup">Sales_ProductionOrderStatus</property>
                 <property name="Status">Open</property>
             </evaluate>
-            <execute method="create" program="org.efaps.esjp.fabrication.Process">
+            <execute method="create" program="org.efaps.esjp.fabrication.Process" index="0">
                 <property name="UseNumberGenerator4Name">true</property>
                 <property name="StatusGroup">Fabrication_ProcessStatus</property>
                 <property name="Status">Open</property>
@@ -47,6 +47,9 @@
                 <property name="ConnectCurrentLink">FromLink</property>
                 <property name="ConnectForeignLink">ToLink</property>
                 <property name="ConnectForeignField">productionOrder</property>
+                <property name="Archives_CreateRoot">true</property>
+                <property name="Archives_ConnectType">Fabrication_Process2ArchiveAbstract</property>
+                <property name="Archives_ConnectParentAttribute">FromLink</property>
             </execute>
         </target>
         <property name="Target">modal</property>

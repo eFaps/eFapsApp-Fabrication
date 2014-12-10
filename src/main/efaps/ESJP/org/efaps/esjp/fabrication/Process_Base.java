@@ -37,6 +37,7 @@ import org.efaps.admin.event.Return;
 import org.efaps.admin.event.Return.ReturnValues;
 import org.efaps.admin.program.esjp.EFapsRevision;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.admin.program.esjp.Listener;
 import org.efaps.db.Context;
 import org.efaps.db.Insert;
 import org.efaps.db.Instance;
@@ -56,6 +57,7 @@ import org.efaps.esjp.erp.AbstractWarning;
 import org.efaps.esjp.erp.CommonDocument;
 import org.efaps.esjp.erp.IWarning;
 import org.efaps.esjp.erp.WarningUtil;
+import org.efaps.esjp.erp.listener.IOnCreateDocument;
 import org.efaps.esjp.fabrication.report.ProcessReport;
 import org.efaps.esjp.fabrication.report.ProcessReport_Base.DataBean;
 import org.efaps.esjp.fabrication.report.ProcessReport_Base.ValuesBean;
@@ -126,7 +128,20 @@ public abstract class Process_Base
                 connect2Object(_parameter, createdDoc);
             }
         };
-        return create.execute(_parameter);
+        final Instance instance = create.basicInsert(_parameter);
+        create.connect(_parameter, instance);
+
+        final CreatedDoc createdDoc = new CreatedDoc();
+        createdDoc.setInstance(instance);
+        // call possible listeners
+        for (final IOnCreateDocument listener : Listener.get().<IOnCreateDocument>invoke(
+                        IOnCreateDocument.class)) {
+            listener.afterCreate(_parameter, createdDoc);
+        }
+
+        final Return ret = new Return();
+        ret.put(ReturnValues.INSTANCE, instance);
+        return ret;
     }
 
 

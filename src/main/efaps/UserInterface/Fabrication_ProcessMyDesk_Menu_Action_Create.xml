@@ -43,6 +43,9 @@
                 <property name="ConnectCurrentLink">FromLink</property>
                 <property name="ConnectForeignLink">ToLink</property>
                 <property name="ConnectForeignField">productionOrder</property>
+                <property name="Archives_CreateRoot">true</property>
+                <property name="Archives_ConnectType">Fabrication_Process2ArchiveAbstract</property>
+                <property name="Archives_ConnectParentAttribute">FromLink</property>
             </execute>
         </target>
         <property name="Target">modal</property>

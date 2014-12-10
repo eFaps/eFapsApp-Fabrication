@@ -22,6 +22,7 @@ package org.efaps.esjp.fabrication.listener;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +52,10 @@ import org.efaps.esjp.erp.NumberFormatter;
 import org.efaps.esjp.erp.listener.IOnCreateDocument;
 import org.efaps.esjp.fabrication.Process;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
+import org.efaps.esjp.products.util.Products;
+import org.efaps.esjp.products.util.Products.ProductIndividual;
+import org.efaps.esjp.products.util.ProductsSettings;
+import org.efaps.esjp.sales.document.ProductionOrder;
 import org.efaps.esjp.sales.document.UsageReport;
 import org.efaps.util.EFapsException;
 
@@ -130,29 +135,55 @@ public abstract class OnCreateDocument_Base
             final SelectBuilder selProd = SelectBuilder.get().linkto(CISales.ProductionOrderPosition.Product);
             final SelectBuilder selProdInst = new SelectBuilder(selProd).instance();
             final SelectBuilder selProdName = new SelectBuilder(selProd).attribute(CIProducts.ProductAbstract.Name);
+            final SelectBuilder selProdIndividual = new SelectBuilder(selProd)
+                                        .attribute(CIProducts.ProductAbstract.Individual);
             final SelectBuilder selProdDescr = new SelectBuilder(selProd)
                             .attribute(CIProducts.ProductAbstract.Description);
-            multi.addSelect(selProdInst, selProdName, selProdDescr);
+            multi.addSelect(selProdInst, selProdName, selProdDescr, selProdIndividual);
             multi.addAttribute(CISales.ProductionOrderPosition.UoM, CISales.ProductionOrderPosition.Quantity);
             multi.execute();
-            final List<Map<String, Object>> values = new ArrayList<Map<String, Object>>();
+            final Map<Instance, Map<String, Object>> valueMap = new HashMap<>();
 
             while (multi.next()) {
-                final Map<String, Object> map = new HashMap<String, Object>();
-                final UoM uom = Dimension.getUoM(multi.<Long>getAttribute(CISales.ProductionOrderPosition.UoM));
+                final Instance prodInst = multi.getSelect(selProdInst);
+                if (valueMap.containsKey(prodInst)) {
+                    try {
+                        final Map<String, Object> map = valueMap.get(prodInst);
+                        final BigDecimal quant = (BigDecimal) qtyFrmt.parse((String) map
+                                        .get(CITableSales.Sales_ProductionReportPositionTable.quantity.name));
+                        map.put(CITableSales.Sales_ProductionReportPositionTable.quantity.name, qtyFrmt.format(multi
+                                       .<BigDecimal>getAttribute(CISales.ProductionOrderPosition.Quantity).add(quant)));
+                    } catch (final ParseException e) {
 
-                final StringBuilder jsUoM = new StringBuilder("new Array('").append(uom.getId()).append("','").
-                                append(uom.getId()).append("','").append(uom.getName()).append("')");
-                map.put(CITableSales.Sales_ProductionReportPositionTable.quantity.name, qtyFrmt.format(multi
-                                .<BigDecimal>getAttribute(CISales.ProductionOrderPosition.Quantity)));
-                map.put(CITableSales.Sales_ProductionReportPositionTable.product.name, new String[] {
-                                multi.<Instance>getSelect(selProdInst).getOid(),
-                                multi.<String>getSelect(selProdName) });
-                map.put(CITableSales.Sales_ProductionReportPositionTable.productDesc.name,
-                                multi.<String>getSelect(selProdDescr));
-                map.put(CITableSales.Sales_ProductionReportPositionTable.uoM.name, jsUoM);
+                    }
+                } else {
+                    final Map<String, Object> map = new HashMap<String, Object>();
+                    final UoM uom = Dimension.getUoM(multi.<Long>getAttribute(CISales.ProductionOrderPosition.UoM));
 
-                values.add(map);
+                    final StringBuilder jsUoM = new StringBuilder("new Array('").append(uom.getId()).append("','").
+                                    append(uom.getId()).append("','").append(uom.getName()).append("')");
+                    map.put(CITableSales.Sales_ProductionReportPositionTable.quantity.name, qtyFrmt.format(multi
+                                    .<BigDecimal>getAttribute(CISales.ProductionOrderPosition.Quantity)));
+                    map.put(CITableSales.Sales_ProductionReportPositionTable.product.name, new String[] {
+                                    multi.<Instance>getSelect(selProdInst).getOid(),
+                                    multi.<String>getSelect(selProdName) });
+                    map.put(CITableSales.Sales_ProductionReportPositionTable.productDesc.name,
+                                    multi.<String>getSelect(selProdDescr));
+                    map.put(CITableSales.Sales_ProductionReportPositionTable.uoM.name, jsUoM);
+
+                    valueMap.put(prodInst, map);
+
+                    if (Products.getSysConfig().getAttributeValueAsBoolean(ProductsSettings.ACTIVATEINDIVIDUAL)) {
+                        js.append(new ProductionOrder().add4Individual(
+                                        _parameter,
+                                        prodInst,
+                                        multi.<ProductIndividual>getSelect(selProdIndividual),
+                                        null,
+                                        prodInst.getOid(),
+                                        multi.<String>getSelect(selProdName) + "-"
+                                                        + multi.<String>getSelect(selProdDescr)));
+                    }
+                }
             }
             final Set<String> noEscape = new HashSet<String>();
             noEscape.add("uoM");
@@ -163,7 +194,7 @@ public abstract class OnCreateDocument_Base
                             CITableSales.Sales_ProductionReportPositionTable.productDesc.name,
                             CIFormSales.Sales_ProductionReportForm.fabricationProcess.name);
             js.append(getTableRemoveScript(_parameter, "positionTable", false, false))
-                            .append(getTableAddNewRowsScript(_parameter, "positionTable", values,
+                            .append(getTableAddNewRowsScript(_parameter, "positionTable", valueMap.values(),
                                             readOnlyFields, false, false, noEscape));
         }
         return js;

@@ -33,9 +33,19 @@
             <role>Fabrication_Manager</role>
         </access>
         <target>
+            <form>Fabrication_ProcessReportRegisterCostForm</form>
             <execute method="registerCost" program="org.efaps.esjp.fabrication.Process"/>
+            <trigger program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                method="check4Status"
+                name="Fabrication_ProcessTree_ProcessReport_Menu_RegisterCost.UI_ACCESSCHECK"
+                event="UI_ACCESSCHECK">
+                <property name="Status">Open</property>
+             </trigger>
         </target>
-        <property name="Target">hidden</property>
-        <property name="AskUser">true</property>
+        <property name="Target">modal</property>
+        <property name="TargetCreateType">Sales_ProductionReport</property>
+        <property name="TargetMode">create</property>
+        <property name="TargetDefaultMenu">none</property>
+        <property name="WindowWidth">1200</property>
     </definition>
 </ui-command>

@@ -34,6 +34,12 @@
         </access>
         <target>
             <execute program="org.efaps.esjp.common.uitable.CommonDelete"/>
+            <trigger program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                method="check4Status"
+                name="Fabrication_ProcessTree_Documents_Menu_Action_Disconnect.UI_ACCESSCHECK"
+                event="UI_ACCESSCHECK">
+                <property name="Status">Open</property>
+             </trigger>
         </target>
         <property name="AskUser">true</property>
         <property name="Submit">true</property>

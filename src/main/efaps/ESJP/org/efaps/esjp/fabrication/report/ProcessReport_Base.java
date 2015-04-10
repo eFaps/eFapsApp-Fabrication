@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Revision:        $Rev$
- * Last Changed:    $Date$
- * Last Changed By: $Author$
  */
 
 package org.efaps.esjp.fabrication.report;
@@ -54,7 +51,7 @@ import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Parameter.ParameterValues;
 import org.efaps.admin.event.Return;
 import org.efaps.admin.event.Return.ReturnValues;
-import org.efaps.admin.program.esjp.EFapsRevision;
+import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.admin.user.Role;
 import org.efaps.db.Context;
@@ -69,6 +66,9 @@ import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
 import org.efaps.esjp.common.jasperreport.AbstractDynamicReport;
 import org.efaps.esjp.erp.Currency;
+import org.efaps.esjp.erp.RateInfo;
+import org.efaps.esjp.fabrication.util.Fabrication;
+import org.efaps.esjp.fabrication.util.FabricationSettings;
 import org.efaps.ui.wicket.models.EmbeddedLink;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
@@ -79,11 +79,9 @@ import org.slf4j.LoggerFactory;
  * TODO comment!
  *
  * @author The eFaps Team
- * @version $Id: ProcessReport_Base.java 13635 2014-08-14 21:25:43Z
- *          jan@moxter.net $
  */
 @EFapsUUID("a6137d37-099f-4915-9945-4a277671c75e")
-@EFapsRevision("$Rev$")
+@EFapsApplication("eFapsApp-Fabrication")
 public abstract class ProcessReport_Base
     extends AbstractCommon
 {
@@ -140,7 +138,8 @@ public abstract class ProcessReport_Base
     public ValuesBean getValues(final Parameter _parameter)
         throws EFapsException
     {
-        this.currencyInstance = Currency.getBaseCurrency();
+        final Instance currInst = Fabrication.getSysConfig().getLink(FabricationSettings.CURRENCY4PROCESSREPORT);
+        this.currencyInstance = currInst.isValid() ? currInst : Currency.getBaseCurrency();
 
         final ValuesBean ret = new ValuesBean();
 
@@ -195,7 +194,7 @@ public abstract class ProcessReport_Base
                 } else {
                     paraBean = getDataBean(_parameter);
                     ret.getParaMap().put(prodInst, paraBean);
-                    paraBean.setProdInstance(prodInst);
+                    paraBean.setCurrencyInst(getCurrencyInstance()).setProdInstance(prodInst);
                     paraBean.setProdName(multi.<String>getSelect(prodNameSel));
                     paraBean.setProdDescription(multi.<String>getSelect(prodDescSel));
                     paraBean.setProdDimension(Dimension.get(multi.<Long>getSelect(prodDimSel)));
@@ -228,7 +227,7 @@ public abstract class ProcessReport_Base
                     } else {
                         bean = getDataBean(_parameter);
                         ret.getDataMap().put(matInst, bean);
-                        bean.setParentProdInst(prodInst);
+                        bean.setCurrencyInst(getCurrencyInstance()).setParentProdInst(prodInst);
                         bean.setDate(date);
                         bean.setProdInstance(matInst);
                         bean.setProdName(bomMulti.<String>getSelect(matNameSel));
@@ -288,7 +287,7 @@ public abstract class ProcessReport_Base
      */
     protected DataBean getDataBean(final Parameter _parameter)
     {
-        return new DataBean();
+        return new DataBean(_parameter);
     }
 
     /**
@@ -375,7 +374,7 @@ public abstract class ProcessReport_Base
             throws EFapsException
         {
             if ( showCost(_parameter)) {
-                _values.calculateCost();
+                _values.calculateCost(_parameter);
                 final StyleBuilder style = DynamicReports.stl.style().setBold(true).setFontSize(14);
                 final VerticalListBuilder vl = DynamicReports.cmp.verticalList();
                 for (final DataBean parentBean : _values.getParaMap().values()) {
@@ -569,7 +568,7 @@ public abstract class ProcessReport_Base
             return this.paraMap;
         }
 
-        public void calculateCost()
+        public void calculateCost(final Parameter _parameter)
             throws EFapsException
         {
             for (final DataBean parentBean : this.paraMap.values()) {
@@ -594,12 +593,18 @@ public abstract class ProcessReport_Base
         private BigDecimal orderQuantity = BigDecimal.ZERO;
         private BigDecimal usageQuantity = BigDecimal.ZERO;
         private BigDecimal fabricatedQuantity = BigDecimal.ZERO;
-
+        private Instance currencyInst;
         private BigDecimal cost = BigDecimal.ZERO;
 
         private boolean init;
+        private Parameter parameter;
 
-        protected void initialize()
+        public DataBean(final Parameter _parameter)
+        {
+            this.parameter = _parameter;
+        }
+
+        protected void initialize(final Parameter _parameter)
             throws EFapsException
         {
             if (!this.init) {
@@ -608,10 +613,22 @@ public abstract class ProcessReport_Base
                 costBldr.addWhereAttrGreaterValue(CIProducts.ProductCost.ValidUntil, this.date.minusMinutes(1));
                 costBldr.addWhereAttrLessValue(CIProducts.ProductCost.ValidFrom, this.date.plusMinutes(1));
                 final MultiPrintQuery costMulti = costBldr.getPrint();
+                final SelectBuilder selCurInts = SelectBuilder.get().linkto(CIProducts.ProductCost.CurrencyLink)
+                                .instance();
+                costMulti.addSelect(selCurInts);
                 costMulti.addAttribute(CIProducts.ProductCost.Price);
                 costMulti.executeWithoutAccessCheck();
                 if (costMulti.next()) {
-                    this.cost = costMulti.<BigDecimal>getAttribute(CIProducts.ProductCost.Price);
+                    final Instance currInst = costMulti.getSelect(selCurInts);
+                    if (currInst.equals(getCurrencyInst())) {
+                        this.cost = costMulti.<BigDecimal>getAttribute(CIProducts.ProductCost.Price);
+                    } else {
+                        final RateInfo[] rateInfo = new Currency().evaluateRateInfos(_parameter, (String) null, currInst,
+                                        getCurrencyInst());
+                        final BigDecimal priceTmp = costMulti.<BigDecimal>getAttribute(CIProducts.ProductCost.Price);
+                        this.cost = priceTmp.setScale(8, BigDecimal.ROUND_HALF_UP).divide(rateInfo[2].getRate(),
+                                        BigDecimal.ROUND_HALF_UP);
+                    }
                 }
                 this.init = true;
             }
@@ -693,6 +710,27 @@ public abstract class ProcessReport_Base
         public void setProdInst(final Instance _prodInst)
         {
             this.prodInst = _prodInst;
+        }
+
+        /**
+         * Getter method for the instance variable {@link #prodInst}.
+         *
+         * @return value of instance variable {@link #prodInst}
+         */
+        public Instance getCurrencyInst()
+        {
+            return this.currencyInst;
+        }
+
+        /**
+         * Setter method for instance variable {@link #prodInst}.
+         *
+         * @param _prodInst value for instance variable {@link #prodInst}
+         */
+        public DataBean setCurrencyInst(final Instance _prodInst)
+        {
+            this.currencyInst = _prodInst;
+            return this;
         }
 
         /**
@@ -817,7 +855,7 @@ public abstract class ProcessReport_Base
         public BigDecimal getCost()
             throws EFapsException
         {
-            initialize();
+            initialize(getParameter());
             return this.cost;
         }
 
@@ -933,6 +971,28 @@ public abstract class ProcessReport_Base
         public void setParentProdInst(final Instance _parentProdInst)
         {
             this.parentProdInst = _parentProdInst;
+        }
+
+
+        /**
+         * Getter method for the instance variable {@link #parameter}.
+         *
+         * @return value of instance variable {@link #parameter}
+         */
+        public Parameter getParameter()
+        {
+            return this.parameter;
+        }
+
+
+        /**
+         * Setter method for instance variable {@link #parameter}.
+         *
+         * @param _parameter value for instance variable {@link #parameter}
+         */
+        public void setParameter(final Parameter _parameter)
+        {
+            this.parameter = _parameter;
         }
     }
 }

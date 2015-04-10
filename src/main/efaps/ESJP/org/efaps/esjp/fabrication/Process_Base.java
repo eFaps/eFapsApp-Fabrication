@@ -22,6 +22,7 @@ package org.efaps.esjp.fabrication;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Parameter.ParameterValues;
 import org.efaps.admin.event.Return;
 import org.efaps.admin.event.Return.ReturnValues;
-import org.efaps.admin.program.esjp.EFapsRevision;
+import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 import org.efaps.admin.program.esjp.Listener;
 import org.efaps.db.Context;
@@ -50,6 +51,7 @@ import org.efaps.esjp.ci.CIFabrication;
 import org.efaps.esjp.ci.CIFormFabrication;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
+import org.efaps.esjp.ci.CITableFabrication;
 import org.efaps.esjp.common.uiform.Create;
 import org.efaps.esjp.common.uisearch.Search;
 import org.efaps.esjp.common.util.InterfaceUtils;
@@ -75,11 +77,9 @@ import org.joda.time.DateTime;
  * TODO comment!
  *
  * @author The eFaps Team
- * @version $Id: Process_Base.java 13395 2014-07-23 16:30:34Z
- *          luis.moreyra@efaps.org $
  */
 @EFapsUUID("110c1dbe-6c62-418a-9385-e12bada57e13")
-@EFapsRevision("$Rev$")
+@EFapsApplication("eFapsApp-Fabrication")
 public abstract class Process_Base
     extends CommonDocument
 {
@@ -90,19 +90,56 @@ public abstract class Process_Base
     public Return registerCost(final Parameter _parameter)
         throws EFapsException
     {
-        final ProcessReport report = new ProcessReport();
-        final ValuesBean values = report.getValues(_parameter);
-        values.calculateCost();
-        for (final DataBean parentBean : values.getParaMap().values()) {
+        final String[] productLink = _parameter
+                        .getParameterValues(CITableFabrication.Fabrication_ProcessReportRegisterCostTable.productLink.name);
+        final String[] currencyLink = _parameter
+                        .getParameterValues(CITableFabrication.Fabrication_ProcessReportRegisterCostTable.currencyLink.name);
+        final String[] validFrom = _parameter
+                        .getParameterValues(CITableFabrication.Fabrication_ProcessReportRegisterCostTable.validFrom.name);
+        final String[] validUntil = _parameter
+                        .getParameterValues(CITableFabrication.Fabrication_ProcessReportRegisterCostTable.validUntil.name);
+        final String[] price = _parameter
+                        .getParameterValues(CITableFabrication.Fabrication_ProcessReportRegisterCostTable.price.name);
+
+        for (int idx = 0; idx < productLink.length; idx++) {
             final Insert insert = new Insert(CIProducts.ProductCost);
-            insert.add(CIProducts.ProductCost.CurrencyLink, report.getCurrencyInstance());
-            insert.add(CIProducts.ProductCost.ProductLink, parentBean.getProdInst());
-            insert.add(CIProducts.ProductCost.ValidFrom, new DateTime().withTimeAtStartOfDay());
-            insert.add(CIProducts.ProductCost.ValidUntil, new DateTime().withTimeAtStartOfDay().plusYears(10));
-            insert.add(CIProducts.ProductCost.Price, parentBean.getUnitCost());
+            insert.add(CIProducts.ProductCost.CurrencyLink, currencyLink[idx]);
+            insert.add(CIProducts.ProductCost.ProductLink, productLink[idx]);
+            insert.add(CIProducts.ProductCost.ValidFrom, validFrom[idx]);
+            insert.add(CIProducts.ProductCost.ValidUntil, validUntil[idx]);
+            insert.add(CIProducts.ProductCost.Price, price[idx]);
             insert.execute();
         }
         return new Return();
+    }
+
+    public Return getJavaScript4CostUIValue(final Parameter _parameter)
+        throws EFapsException
+    {
+
+        final Collection<Map<String, Object>> maplist = new ArrayList<>();
+        final ProcessReport report = new ProcessReport();
+        final ValuesBean values = report.getValues(_parameter);
+
+        values.calculateCost(_parameter);
+        for (final DataBean parentBean : values.getParaMap().values()) {
+            final Map<String, Object> map = new HashMap<>();
+            maplist.add(map);
+            map.put("productLink", parentBean.getProdInst().getId());
+            map.put("productDesc", parentBean.getProdDescription());
+            map.put("currencyLink", parentBean.getCurrencyInst().getId());
+            map.put("price", parentBean.getUnitCost());
+            map.put("validUntil_eFapsDate",
+                            org.efaps.ui.wicket.util.DateUtil.getDate4Parameter(new DateTime().plusYears(10)));
+        }
+
+        final Return retVal = new Return();
+        final StringBuilder js = new StringBuilder()
+                        .append(getTableRemoveScript(_parameter, "costTable"))
+                        .append(getTableAddNewRowsScript(_parameter, "costTable", maplist,
+                                        getTableDeactivateScript(_parameter, "costTable", false, false)));
+        retVal.put(ReturnValues.SNIPLETT, InterfaceUtils.wrappInScriptTag(_parameter, js, true, 1000));
+        return retVal;
     }
 
     public Return create(final Parameter _parameter)

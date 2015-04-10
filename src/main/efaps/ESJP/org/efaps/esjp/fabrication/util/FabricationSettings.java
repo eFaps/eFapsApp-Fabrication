@@ -21,7 +21,7 @@
 
 package org.efaps.esjp.fabrication.util;
 
-import org.efaps.admin.program.esjp.EFapsRevision;
+import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 
 
@@ -32,7 +32,7 @@ import org.efaps.admin.program.esjp.EFapsUUID;
  * @version $Id$
  */
 @EFapsUUID("9e6fb984-9406-41d5-a59a-6068e7e340e6")
-@EFapsRevision("$Rev$")
+@EFapsApplication("eFapsApp-Fabrication")
 public interface FabricationSettings
 {
     /**
@@ -55,5 +55,12 @@ public interface FabricationSettings
      * Set which table to show.
      */
     String PRODORDERDETAIL = FabricationSettings.BASE + "ProductionOrderShowDetail";
+
+    /**
+     * Boolean.
+     * Set which table to show.
+     */
+    String CURRENCY4PROCESSREPORT = FabricationSettings.BASE + "Currency4ProcessReport";
+
 
 }

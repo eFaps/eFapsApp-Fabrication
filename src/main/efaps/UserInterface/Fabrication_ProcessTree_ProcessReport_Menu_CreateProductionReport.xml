@@ -45,6 +45,12 @@
                 <property name="Validation">POSITION</property>
                 <property name="Validation01">QUANTITYGREATERZERO</property>
             </validate>
+            <trigger program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                method="check4Status"
+                name="Fabrication_ProcessTree_ProcessReport_Menu_CreateProductionReport.UI_ACCESSCHECK"
+                event="UI_ACCESSCHECK">
+                <property name="Status">Open</property>
+             </trigger>
         </target>
         <property name="Target">modal</property>
         <property name="TargetCreateType">Sales_ProductionReport</property>

@@ -54,6 +54,12 @@
                 <property name="ConnectChildType02">f069a1fc-f500-4e2c-9ef9-6727115ca317</property>
             </execute>
             <validate program="org.efaps.esjp.fabrication.Process" method="validate4Connect"></validate>
+            <trigger program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                method="check4Status"
+                name="Fabrication_ProcessTree_Documents_Menu_Action_AddExisting.UI_ACCESSCHECK"
+                event="UI_ACCESSCHECK">
+                <property name="Status">Open</property>
+             </trigger>
         </target>
         <property name="Target">modal</property>
     </definition>

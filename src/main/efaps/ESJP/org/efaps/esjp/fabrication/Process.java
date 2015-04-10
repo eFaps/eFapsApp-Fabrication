@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Revision:        $Rev$
- * Last Changed:    $Date$
- * Last Changed By: $Author$
  */
-
 
 package org.efaps.esjp.fabrication;
 
-import org.efaps.admin.program.esjp.EFapsRevision;
+import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
-
-
 
 /**
  * This class must be replaced for customization, therefore it is left empty.
@@ -32,10 +26,9 @@ import org.efaps.admin.program.esjp.EFapsUUID;
  * class.
  *
  * @author The eFaps Team
- * @version $Id$
  */
 @EFapsUUID("27900cf3-6cc0-4a05-9e9c-1093f8530f58")
-@EFapsRevision("$Rev$")
+@EFapsApplication("eFapsApp-Fabrication")
 public class Process
     extends Process_Base
 {

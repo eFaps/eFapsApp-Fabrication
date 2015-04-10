@@ -19,20 +19,25 @@
  Last Changed:    $Date$
  Last Changed By: $Author$
 
---><ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+-->
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
     <uuid>b7583f9f-5ff6-4b28-bd76-6a26c26ad984</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
         <name>Fabrication_ProcessTree_UsageReport_Menu_CreateUsageReport</name>
-
         <target>
             <form>Fabrication_ProcessTree_CreateUsageReportForm</form>
-            <command>Fabrication_ProcessTree_UsageReport_Menu_CreateUsageReport2</command>
+            <trigger program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                method="check4Status"
+                name="Fabrication_ProcessTree_UsageReport_Menu_CreateUsageReport.UI_ACCESSCHECK"
+                event="UI_ACCESSCHECK">
+                <property name="Status">Open</property>
+             </trigger>
+             <command>Fabrication_ProcessTree_UsageReport_Menu_CreateUsageReport2</command>
         </target>
-
-        <!-- properties -->
         <property name="Target">modal</property>
         <property name="TargetMode">create</property>
         <property name="WindowHeight">660</property>

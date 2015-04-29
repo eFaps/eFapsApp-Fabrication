@@ -608,7 +608,7 @@ public abstract class ProcessReport_Base
             throws EFapsException
         {
             if (!this.init) {
-                this.cost =  Cost.getCost4Currency(_parameter, getProdInst(), getCurrencyInst());
+                this.cost =  Cost.getCost4Currency(_parameter, getDate(), getProdInst(), getCurrencyInst());
                 this.init = true;
             }
         }

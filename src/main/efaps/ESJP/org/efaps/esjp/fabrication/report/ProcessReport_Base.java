@@ -66,9 +66,9 @@ import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
 import org.efaps.esjp.common.jasperreport.AbstractDynamicReport;
 import org.efaps.esjp.erp.Currency;
-import org.efaps.esjp.erp.RateInfo;
 import org.efaps.esjp.fabrication.util.Fabrication;
 import org.efaps.esjp.fabrication.util.FabricationSettings;
+import org.efaps.esjp.products.Cost;
 import org.efaps.ui.wicket.models.EmbeddedLink;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
@@ -608,28 +608,7 @@ public abstract class ProcessReport_Base
             throws EFapsException
         {
             if (!this.init) {
-                final QueryBuilder costBldr = new QueryBuilder(CIProducts.ProductCost);
-                costBldr.addWhereAttrEqValue(CIProducts.ProductCost.ProductLink, getProdInst());
-                costBldr.addWhereAttrGreaterValue(CIProducts.ProductCost.ValidUntil, this.date.minusMinutes(1));
-                costBldr.addWhereAttrLessValue(CIProducts.ProductCost.ValidFrom, this.date.plusMinutes(1));
-                final MultiPrintQuery costMulti = costBldr.getPrint();
-                final SelectBuilder selCurInts = SelectBuilder.get().linkto(CIProducts.ProductCost.CurrencyLink)
-                                .instance();
-                costMulti.addSelect(selCurInts);
-                costMulti.addAttribute(CIProducts.ProductCost.Price);
-                costMulti.executeWithoutAccessCheck();
-                if (costMulti.next()) {
-                    final Instance currInst = costMulti.getSelect(selCurInts);
-                    if (currInst.equals(getCurrencyInst())) {
-                        this.cost = costMulti.<BigDecimal>getAttribute(CIProducts.ProductCost.Price);
-                    } else {
-                        final RateInfo[] rateInfo = new Currency().evaluateRateInfos(_parameter, (String) null, currInst,
-                                        getCurrencyInst());
-                        final BigDecimal priceTmp = costMulti.<BigDecimal>getAttribute(CIProducts.ProductCost.Price);
-                        this.cost = priceTmp.setScale(8, BigDecimal.ROUND_HALF_UP).divide(rateInfo[2].getRate(),
-                                        BigDecimal.ROUND_HALF_UP);
-                    }
-                }
+                this.cost =  Cost.getCost4Currency(_parameter, getProdInst(), getCurrencyInst());
                 this.init = true;
             }
         }

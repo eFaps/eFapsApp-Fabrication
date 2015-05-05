@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2014 The eFaps Team
+ * Copyright 2003 - 2015 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,15 +33,15 @@ import java.util.Set;
 import org.efaps.admin.datamodel.Dimension;
 import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.event.Parameter;
-import org.efaps.admin.program.esjp.EFapsRevision;
+import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.db.Context;
 import org.efaps.db.Instance;
 import org.efaps.db.MultiPrintQuery;
 import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
 import org.efaps.db.SelectBuilder;
 import org.efaps.esjp.ci.CIFabrication;
-import org.efaps.esjp.ci.CIFormFabrication;
 import org.efaps.esjp.ci.CIFormSales;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
@@ -52,22 +52,22 @@ import org.efaps.esjp.erp.NumberFormatter;
 import org.efaps.esjp.erp.listener.IOnCreateDocument;
 import org.efaps.esjp.fabrication.Process;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
+import org.efaps.esjp.products.Storage;
 import org.efaps.esjp.products.util.Products;
 import org.efaps.esjp.products.util.Products.ProductIndividual;
 import org.efaps.esjp.products.util.ProductsSettings;
 import org.efaps.esjp.sales.document.ProductionOrder;
 import org.efaps.esjp.sales.document.UsageReport;
 import org.efaps.util.EFapsException;
+import org.joda.time.DateTime;
 
 /**
  * TODO comment!
  *
  * @author The eFaps Team
- * @version $Id: OnCreateDocument_Base.java 13395 2014-07-23 16:30:34Z
- *          luis.moreyra@efaps.org $
  */
 @EFapsUUID("da56cbac-c191-4d9f-9c12-ffab92c8eefb")
-@EFapsRevision("$Rev$")
+@EFapsApplication("eFapsApp-Fabrication")
 public abstract class OnCreateDocument_Base
     extends CommonDocument
     implements IOnCreateDocument
@@ -209,11 +209,26 @@ public abstract class OnCreateDocument_Base
         throws EFapsException
     {
         final StringBuilder js = new StringBuilder();
-        final String storage = _parameter
-                        .getParameterValue(CIFormFabrication.Fabrication_ProcessTree_CreateUsageReportForm.storage.name);
+        final Instance storageInst = Storage.getDefaultStorage(_parameter,
+                        new UsageReport().getTypeName4SysConf(_parameter));
+
         final Map<Instance, BOMBean> ins2map = new Process().getInstance2BOMMap(_parameter);
         final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
+
         final List<Map<String, Object>> values = new ArrayList<Map<String, Object>>();
+
+        final PrintQuery print = new PrintQuery(_parameter.getInstance());
+        print.addAttribute(CIFabrication.ProcessAbstract.Name, CIFabrication.ProcessAbstract.Date);
+        print.execute();
+        final String processName = print.getAttribute(CIFabrication.Process.Name);
+        final StringBuilder bldr = new StringBuilder().append(print.getAttribute(CIFabrication.ProcessAbstract.Name))
+                        .append(" - ").append(print.<DateTime>getAttribute(CIFabrication.ProcessAbstract.Date)
+                                        .toString("dd/MM/yyyy", Context.getThreadContext().getLocale()));
+
+        js.append(getSetFieldValue(0, CIFormSales.Sales_UsageReportForm.fabricationProcess.name, _parameter
+                        .getInstance().getOid(), processName))
+                        .append(getSetFieldValue(0, CIFormSales.Sales_UsageReportForm.fabricationProcessData.name,
+                                        bldr.toString()));
 
         for (final BOMBean mat : ins2map.values()) {
             final Map<String, Object> map = new HashMap<String, Object>();
@@ -226,19 +241,15 @@ public abstract class OnCreateDocument_Base
             map.put(CITableSales.Sales_UsageReportPositionTable.productDesc.name, mat.getMatDescription());
             map.put(CITableSales.Sales_UsageReportPositionTable.uoM.name, jsUoM);
             map.put(CITableSales.Sales_UsageReportPositionTable.quantityInStock.name,
-                            getStock4ProductInStorage(_parameter, mat.getMatInstance(), Instance.get(storage)));
+                            getStock4ProductInStorage(_parameter, mat.getMatInstance(), storageInst));
             values.add(map);
         }
         final Set<String> noEscape = new HashSet<String>();
         noEscape.add("uoM");
 
-        final StringBuilder readOnlyFields = getSetFieldReadOnlyScript(_parameter,
-                        CITableSales.Sales_UsageReportPositionTable.quantity.name,
-                        CITableSales.Sales_UsageReportPositionTable.product.name,
-                        CITableSales.Sales_UsageReportPositionTable.productDesc.name);
         js.append(getTableRemoveScript(_parameter, "positionTable", false, false))
                         .append(getTableAddNewRowsScript(_parameter, "positionTable", values,
-                                        readOnlyFields, false, false, noEscape));
+                                        null, false, false, noEscape));
         return js;
     }
 

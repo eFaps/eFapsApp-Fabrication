@@ -69,6 +69,7 @@ import org.efaps.esjp.fabrication.util.Fabrication;
 import org.efaps.esjp.fabrication.util.FabricationSettings;
 import org.efaps.esjp.products.Storage;
 import org.efaps.esjp.products.Transaction_Base;
+import org.efaps.esjp.sales.document.UsageReport;
 import org.efaps.ui.wicket.util.EFapsKey;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
@@ -185,31 +186,10 @@ public abstract class Process_Base
     public Return createUsageReport(final Parameter _parameter)
         throws EFapsException
     {
-        final Return ret = new Return();
+        final UsageReport usRep = new UsageReport(){
 
-        final Map<Instance, BOMBean> inst2bom = getInstance2BOMMap(_parameter);
-        final Insert insert = new Insert(CISales.UsageReport);
-        final String name = getDocName4Create(_parameter);
-        insert.add(CISales.UsageReport.Name, name);
-        insert.add(CISales.UsageReport.Date, new DateTime());
-        insert.add(CISales.UsageReport.Status, Status.find(CISales.UsageReportStatus.Open));
-        insert.execute();
-        int i = 0;
-        for (final BOMBean bom : inst2bom.values()) {
-            final Insert insPos = new Insert(CISales.UsageReportPosition);
-            insPos.add(CISales.UsageReportPosition.PositionNumber, i++);
-            insPos.add(CISales.UsageReportPosition.DocumentAbstractLink, insert.getInstance());
-            insPos.add(CISales.UsageReportPosition.Product, bom.getMatInstance());
-            insPos.add(CISales.UsageReportPosition.ProductDesc, bom.getMatDescription());
-            insPos.add(CISales.UsageReportPosition.Quantity, bom.getQuantity());
-            insPos.add(CISales.UsageReportPosition.UoM, bom.getUomID());
-            insPos.execute();
-        }
-        final Insert insert2 = new Insert(CIFabrication.Process2UsageReport);
-        insert2.add(CIFabrication.Process2UsageReport.FromLink, _parameter.getInstance());
-        insert2.add(CIFabrication.Process2UsageReport.ToLink, insert.getInstance());
-        insert2.execute();
-        return ret;
+        };
+        return usRep.create(_parameter);
     }
 
     public Map<Instance, BOMBean> getInstance2BOMMap(final Parameter _parameter)

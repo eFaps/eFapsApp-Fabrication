@@ -217,6 +217,24 @@ public abstract class OnCreateDocument_Base
 
         final List<Map<String, Object>> values = new ArrayList<Map<String, Object>>();
 
+        final StringBuilder noteBldr = new StringBuilder();
+        final QueryBuilder atrtQueryBldr= new QueryBuilder(CIFabrication.Process2ProductionOrder);
+        atrtQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionOrder.FromLink, _parameter.getInstance());
+
+        final QueryBuilder queryBldr= new QueryBuilder(CISales.ProductionOrderPosition);
+        queryBldr.addWhereAttrInQuery(CISales.ProductionOrderPosition.ProductionOrderLink,
+                        atrtQueryBldr.getAttributeQuery(CIFabrication.Process2ProductionOrder.ToLink));
+        final MultiPrintQuery multi = queryBldr.getPrint();
+        multi.addAttribute(CISales.ProductionOrderPosition.ProductDesc, CISales.ProductionOrderPosition.Quantity);
+        multi.execute();
+        while (multi.next()) {
+            noteBldr.append(multi.getAttribute(CISales.ProductionOrderPosition.Quantity))
+                .append(" ")
+                .append(multi.getAttribute(CISales.ProductionOrderPosition.ProductDesc));
+        }
+        js.append(getSetFieldValue(0, CIFormSales.Sales_UsageReportForm.note.name, noteBldr.toString()));
+
+
         final PrintQuery print = new PrintQuery(_parameter.getInstance());
         print.addAttribute(CIFabrication.ProcessAbstract.Name, CIFabrication.ProcessAbstract.Date);
         print.execute();

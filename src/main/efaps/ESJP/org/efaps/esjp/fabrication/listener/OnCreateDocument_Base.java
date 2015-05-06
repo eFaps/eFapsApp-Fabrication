@@ -234,20 +234,21 @@ public abstract class OnCreateDocument_Base
         }
         js.append(getSetFieldValue(0, CIFormSales.Sales_UsageReportForm.note.name, noteBldr.toString()));
 
-
-        final PrintQuery print = new PrintQuery(_parameter.getInstance());
-        print.addAttribute(CIFabrication.ProcessAbstract.Name, CIFabrication.ProcessAbstract.Date);
-        print.execute();
-        final String processName = print.getAttribute(CIFabrication.Process.Name);
-        final StringBuilder bldr = new StringBuilder().append(print.getAttribute(CIFabrication.ProcessAbstract.Name))
-                        .append(" - ").append(print.<DateTime>getAttribute(CIFabrication.ProcessAbstract.Date)
+        if (_parameter.getInstance() != null && _parameter.getInstance().isValid()
+                        && _parameter.getInstance().getType().isKindOf(CIFabrication.ProcessAbstract)) {
+            final PrintQuery print = new PrintQuery(_parameter.getInstance());
+            print.addAttribute(CIFabrication.ProcessAbstract.Name, CIFabrication.ProcessAbstract.Date);
+            print.execute();
+            final String processName = print.getAttribute(CIFabrication.Process.Name);
+            final StringBuilder bldr = new StringBuilder().append(print.getAttribute(CIFabrication.ProcessAbstract.Name))
+                            .append(" - ").append(print.<DateTime>getAttribute(CIFabrication.ProcessAbstract.Date)
                                         .toString("dd/MM/yyyy", Context.getThreadContext().getLocale()));
 
-        js.append(getSetFieldValue(0, CIFormSales.Sales_UsageReportForm.fabricationProcess.name, _parameter
+            js.append(getSetFieldValue(0, CIFormSales.Sales_UsageReportForm.fabricationProcess.name, _parameter
                         .getInstance().getOid(), processName))
                         .append(getSetFieldValue(0, CIFormSales.Sales_UsageReportForm.fabricationProcessData.name,
                                         bldr.toString()));
-
+        }
         for (final BOMBean mat : ins2map.values()) {
             final Map<String, Object> map = new HashMap<String, Object>();
             final StringBuilder jsUoM = new StringBuilder("new Array('").append(mat.getUomID()).append("','").

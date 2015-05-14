@@ -203,7 +203,7 @@ public abstract class OnCreateDocument_Base
                     .append(" type: \"hidden\" ")
                     .append("}, pN);\n");
             }
-            js.append(InterfaceUtils.wrapInDojoRequire(_parameter, derived, DojoLibs.DOMCONSTRUCT));
+            js.append(InterfaceUtils.wrapInDojoRequire(_parameter, derived, DojoLibs.QUERY, DojoLibs.DOMCONSTRUCT));
 
             final Set<String> noEscape = new HashSet<String>();
             noEscape.add("uoM");

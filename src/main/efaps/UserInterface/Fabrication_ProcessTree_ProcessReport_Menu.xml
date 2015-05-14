@@ -34,6 +34,7 @@
             <child>Fabrication_ProcessTree_UsageReport_Menu_CreateUsageReport</child>
             <child>Fabrication_ProcessTree_ProcessReport_Menu_CreateProductionReport</child>
             <child>Fabrication_ProcessTree_ProcessReport_Menu_RegisterCost</child>
+            <child>Fabrication_ProcessTree_ProcessReport_Menu_CreateProductionCosting</child>
         </childs>
     </definition>
 </ui-menu>

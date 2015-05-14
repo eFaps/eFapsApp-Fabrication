@@ -36,8 +36,18 @@
             <form>Fabrication_ProcessReportRegisterCostForm</form>
             <execute method="registerCost" program="org.efaps.esjp.fabrication.Process"/>
             <trigger program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                method="configCheck"
+                index="1"
+                name="Fabrication_ProcessTree_ProcessReport_Menu_RegisterCost.UI_ACCESSCHECK.1"
+                event="UI_ACCESSCHECK">
+                <property name="SystemConfig">Sales-Configuration</property>
+                <property name="Attribute">org.efaps.sales.ActivateCosting</property>
+                <property name="Inverse">true</property>
+            </trigger>
+            <trigger program="org.efaps.esjp.admin.access.AccessCheck4UI"
+                 index="2"
                 method="check4Status"
-                name="Fabrication_ProcessTree_ProcessReport_Menu_RegisterCost.UI_ACCESSCHECK"
+                name="Fabrication_ProcessTree_ProcessReport_Menu_RegisterCost.UI_ACCESSCHECK.2"
                 event="UI_ACCESSCHECK">
                 <property name="Status">Open</property>
              </trigger>

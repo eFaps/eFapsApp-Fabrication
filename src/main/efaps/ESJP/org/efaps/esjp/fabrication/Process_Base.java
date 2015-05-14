@@ -91,16 +91,16 @@ public abstract class Process_Base
     public Return registerCost(final Parameter _parameter)
         throws EFapsException
     {
-        final String[] productLink = _parameter
-                        .getParameterValues(CITableFabrication.Fabrication_ProcessReportRegisterCostTable.productLink.name);
-        final String[] currencyLink = _parameter
-                        .getParameterValues(CITableFabrication.Fabrication_ProcessReportRegisterCostTable.currencyLink.name);
-        final String[] validFrom = _parameter
-                        .getParameterValues(CITableFabrication.Fabrication_ProcessReportRegisterCostTable.validFrom.name);
-        final String[] validUntil = _parameter
-                        .getParameterValues(CITableFabrication.Fabrication_ProcessReportRegisterCostTable.validUntil.name);
-        final String[] price = _parameter
-                        .getParameterValues(CITableFabrication.Fabrication_ProcessReportRegisterCostTable.price.name);
+        final String[] productLink = _parameter.getParameterValues(
+                        CITableFabrication.Fabrication_ProcessReportRegisterCostTable.productLink.name);
+        final String[] currencyLink = _parameter.getParameterValues(
+                        CITableFabrication.Fabrication_ProcessReportRegisterCostTable.currencyLink.name);
+        final String[] validFrom = _parameter.getParameterValues(
+                        CITableFabrication.Fabrication_ProcessReportRegisterCostTable.validFrom.name);
+        final String[] validUntil = _parameter.getParameterValues(
+                        CITableFabrication.Fabrication_ProcessReportRegisterCostTable.validUntil.name);
+        final String[] price = _parameter.getParameterValues(
+                        CITableFabrication.Fabrication_ProcessReportRegisterCostTable.price.name);
 
         for (int idx = 0; idx < productLink.length; idx++) {
             final Insert insert = new Insert(CIProducts.ProductCost);

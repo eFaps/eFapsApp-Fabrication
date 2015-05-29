@@ -62,6 +62,7 @@ import org.efaps.esjp.products.util.Products;
 import org.efaps.esjp.products.util.Products.ProductIndividual;
 import org.efaps.esjp.products.util.ProductsSettings;
 import org.efaps.esjp.sales.document.ProductionOrder;
+import org.efaps.esjp.sales.document.ProductionReport;
 import org.efaps.esjp.sales.document.UsageReport;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
@@ -238,7 +239,8 @@ public abstract class OnCreateDocument_Base
             js.append(getSetFieldValue(0, CIFormSales.Sales_ProductionReportForm.fabricationProcess.name,
                             inst.getOid(), name));
 
-            final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
+            final DecimalFormat qtyFrmt = NumberFormatter.get().getFrmt4Quantity(
+                            new ProductionReport().getTypeName4SysConf(_parameter));
 
             final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionOrder);
             attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionOrder.FromLink, inst);
@@ -328,7 +330,8 @@ public abstract class OnCreateDocument_Base
                         new UsageReport().getTypeName4SysConf(_parameter));
 
         final Map<Instance, BOMBean> ins2map = new Process().getInstance2BOMMap(_parameter);
-        final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
+        final DecimalFormat qtyFrmt = NumberFormatter.get().getFrmt4Quantity(
+                        new UsageReport().getTypeName4SysConf(_parameter));
 
         final List<Map<String, Object>> values = new ArrayList<Map<String, Object>>();
 

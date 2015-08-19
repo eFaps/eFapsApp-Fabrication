@@ -58,7 +58,7 @@
                 event="UI_ACCESSCHECK">
                  <!-- Fabrication-Configuration -->
                 <property name="SystemConfig">660188ee-c160-44a1-879b-81595594bfa6</property>
-                <property name="Attribute">org.efaps.fabrication.ProductionOrderShowDetail</property>
+                <property name="Attribute">org.efaps.fabrication.ProductionOrder.ShowDetail</property>
             </trigger>
         </target>
         <property name="Target">modal</property>

@@ -29,20 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
-import net.sf.dynamicreports.report.builder.DynamicReports;
-import net.sf.dynamicreports.report.builder.column.ComponentColumnBuilder;
-import net.sf.dynamicreports.report.builder.column.TextColumnBuilder;
-import net.sf.dynamicreports.report.builder.component.GenericElementBuilder;
-import net.sf.dynamicreports.report.builder.component.VerticalListBuilder;
-import net.sf.dynamicreports.report.builder.expression.AbstractComplexExpression;
-import net.sf.dynamicreports.report.builder.grid.ColumnTitleGroupBuilder;
-import net.sf.dynamicreports.report.builder.style.ConditionalStyleBuilder;
-import net.sf.dynamicreports.report.builder.style.StyleBuilder;
-import net.sf.dynamicreports.report.definition.ReportParameters;
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-
 import org.efaps.admin.datamodel.Dimension;
 import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.datamodel.Status;
@@ -67,13 +53,26 @@ import org.efaps.esjp.common.AbstractCommon;
 import org.efaps.esjp.common.jasperreport.AbstractDynamicReport;
 import org.efaps.esjp.erp.Currency;
 import org.efaps.esjp.fabrication.util.Fabrication;
-import org.efaps.esjp.fabrication.util.FabricationSettings;
 import org.efaps.esjp.products.Cost;
 import org.efaps.ui.wicket.models.EmbeddedLink;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
+import net.sf.dynamicreports.report.builder.DynamicReports;
+import net.sf.dynamicreports.report.builder.column.ComponentColumnBuilder;
+import net.sf.dynamicreports.report.builder.column.TextColumnBuilder;
+import net.sf.dynamicreports.report.builder.component.GenericElementBuilder;
+import net.sf.dynamicreports.report.builder.component.VerticalListBuilder;
+import net.sf.dynamicreports.report.builder.expression.AbstractComplexExpression;
+import net.sf.dynamicreports.report.builder.grid.ColumnTitleGroupBuilder;
+import net.sf.dynamicreports.report.builder.style.ConditionalStyleBuilder;
+import net.sf.dynamicreports.report.builder.style.StyleBuilder;
+import net.sf.dynamicreports.report.definition.ReportParameters;
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 /**
  * TODO comment!
@@ -138,7 +137,7 @@ public abstract class ProcessReport_Base
     public ValuesBean getValues(final Parameter _parameter)
         throws EFapsException
     {
-        final Instance currInst = Fabrication.getSysConfig().getLink(FabricationSettings.CURRENCY4PROCESSREPORT);
+        final Instance currInst = Fabrication.CURRENCY4PROCESSREPORT.get();
         this.currencyInstance = currInst.isValid() ? currInst : Currency.getBaseCurrency();
 
         final ValuesBean ret = new ValuesBean();

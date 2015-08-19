@@ -66,7 +66,6 @@ import org.efaps.esjp.fabrication.report.ProcessReport_Base.ValuesBean;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.ProductBean;
 import org.efaps.esjp.fabrication.util.Fabrication;
-import org.efaps.esjp.fabrication.util.FabricationSettings;
 import org.efaps.esjp.products.Storage;
 import org.efaps.esjp.products.Transaction_Base;
 import org.efaps.esjp.sales.document.UsageReport;
@@ -409,7 +408,7 @@ public abstract class Process_Base
     {
         final Return ret = new Return();
         final List<IWarning> warnings = new ArrayList<IWarning>();
-        if (Fabrication.getSysConfig().getAttributeValueAsBoolean(FabricationSettings.ONEPROD4PROCESS)) {
+        if (Fabrication.PROCESSONEPRODUCT.get()) {
             final List<Instance> prodOrderInsts = new ArrayList<>();
             final String[] oids = _parameter.getParameterValues("selectedRow");
             if (oids != null) {
@@ -505,7 +504,7 @@ public abstract class Process_Base
                 throws EFapsException
             {
                 super.add2QueryBuilder(_parameter, _queryBldr);
-                if (Fabrication.getSysConfig().getAttributeValueAsBoolean(FabricationSettings.ONEPROD4PROCESS)) {
+                if (Fabrication.PROCESSONEPRODUCT.get()) {
                     final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionOrder);
                     attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionOrder.FromLink,
                                     _parameter.getInstance());

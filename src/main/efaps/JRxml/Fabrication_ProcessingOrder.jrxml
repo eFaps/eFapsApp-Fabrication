@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.1.0.final using JasperReports Library version 5.5.1  -->
-<!-- 2015-08-20T03:27:07 -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Fabrication_ProcessingOrder" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="fb08fb95-d16a-4c58-b4d0-d97a993842b0">
+<!-- 2015-08-20T11:03:01 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Fabrication_ProcessingOrder" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isFloatColumnFooter="true" whenResourceMissingType="Error" uuid="fb08fb95-d16a-4c58-b4d0-d97a993842b0">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="eFaps"/>
 	<style name="Table_TH" mode="Opaque" backcolor="#F0F8FF">
 		<box>
@@ -201,17 +201,24 @@ type.label as typeName]]>
 		</band>
 	</pageHeader>
 	<columnHeader>
-		<band height="21" splitType="Stretch">
+		<band height="19" splitType="Stretch">
 			<staticText>
 				<reportElement x="0" y="0" width="100" height="19" uuid="73e8ac19-a92b-44b1-b77b-a6e40dc186f7"/>
-				<text><![CDATA[Por Producir:]]></text>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Productos:]]></text>
 			</staticText>
+			<line>
+				<reportElement x="0" y="0" width="555" height="1" uuid="f428b2f0-6c69-4c13-a232-f246877801be">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+			</line>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="63" splitType="Stretch">
+		<band height="40" splitType="Stretch">
 			<componentElement>
-				<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="555" height="60" uuid="dfd49bc1-2d98-429e-b314-1100cd2c7967">
+				<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="555" height="40" uuid="dfd49bc1-2d98-429e-b314-1100cd2c7967">
 					<property name="net.sf.jasperreports.export.headertoolbar.table.name" value="ProductionOrderTable"/>
 				</reportElement>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
@@ -342,9 +349,9 @@ type.label as typeName]]>
 				</jr:table>
 			</componentElement>
 		</band>
-		<band height="110">
+		<band height="63">
 			<componentElement>
-				<reportElement x="0" y="20" width="555" height="80" uuid="7f9e73f1-eb28-4c3f-96f7-e3a719e6b237">
+				<reportElement x="0" y="20" width="555" height="40" uuid="7f9e73f1-eb28-4c3f-96f7-e3a719e6b237">
 					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 					<property name="net.sf.jasperreports.export.headertoolbar.table.name" value="BOMTable"/>
 				</reportElement>
@@ -360,7 +367,6 @@ type.label as typeName]]>
 					</datasetRun>
 					<jr:column width="60" uuid="6c4c73af-c70c-450b-9047-20b551d9e02b">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
-						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 						<jr:columnHeader height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -374,10 +380,12 @@ type.label as typeName]]>
 							</staticText>
 						</jr:columnHeader>
 						<jr:columnFooter height="30"/>
-						<jr:detailCell height="30">
+						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+							<property name="com.jaspersoft.studio.unit.height" value="px"/>
 							<textField pattern="#,##0.###" isBlankWhenNull="true">
-								<reportElement x="0" y="0" width="60" height="30" uuid="1e8b77f2-24a9-4ba9-83c1-3df5c44bc41a"/>
+								<reportElement x="0" y="0" width="60" height="16" uuid="1e8b77f2-24a9-4ba9-83c1-3df5c44bc41a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle"/>
 								<textFieldExpression><![CDATA[$F{quantity}.multiply((BigDecimal) ((Object[]) $P{PRODUCTMAP}.get($F{productionProductOID}))[0]).setScale(8)
 .multiply(new java.math.BigDecimal($F{numerator}) )
 .divide( new java.math.BigDecimal($F{denominator}), java.math.RoundingMode.HALF_UP )]]></textFieldExpression>
@@ -400,10 +408,11 @@ type.label as typeName]]>
 							</staticText>
 						</jr:columnHeader>
 						<jr:columnFooter height="30"/>
-						<jr:detailCell height="30">
+						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<textField>
-								<reportElement x="0" y="0" width="45" height="30" uuid="55e3ed43-18f9-406b-93c3-00d24d31c1c7"/>
+								<reportElement x="0" y="0" width="45" height="16" uuid="55e3ed43-18f9-406b-93c3-00d24d31c1c7"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle"/>
 								<textFieldExpression><![CDATA[((Object[]) $P{PRODUCTMAP}.get($F{productionProductOID}))[1]]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
@@ -422,10 +431,11 @@ type.label as typeName]]>
 							</staticText>
 						</jr:columnHeader>
 						<jr:columnFooter height="30"/>
-						<jr:detailCell height="30">
+						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<textField>
-								<reportElement x="0" y="0" width="80" height="30" uuid="9c60536e-a53a-489f-9cdd-e282dc613247"/>
+								<reportElement x="0" y="0" width="80" height="16" uuid="9c60536e-a53a-489f-9cdd-e282dc613247"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle"/>
 								<textFieldExpression><![CDATA[$F{prodName}]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
@@ -443,11 +453,12 @@ type.label as typeName]]>
 							</staticText>
 						</jr:columnHeader>
 						<jr:columnFooter height="30"/>
-						<jr:detailCell height="30">
+						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<property name="com.jaspersoft.studio.unit.width" value="px"/>
 							<textField>
-								<reportElement x="0" y="0" width="350" height="30" uuid="beff5d11-91bf-4ebb-82dd-0131d2981223"/>
+								<reportElement x="0" y="0" width="350" height="16" uuid="beff5d11-91bf-4ebb-82dd-0131d2981223"/>
+								<textElement verticalAlignment="Middle"/>
 								<textFieldExpression><![CDATA[$F{prodDesc}]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
@@ -456,11 +467,37 @@ type.label as typeName]]>
 			</componentElement>
 			<staticText>
 				<reportElement x="0" y="0" width="100" height="19" uuid="d66157b6-014b-40a3-899d-f405653e5dfd"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<text><![CDATA[Insumos:]]></text>
 			</staticText>
+			<line>
+				<reportElement x="0" y="0" width="555" height="1" uuid="5d3fb2e4-afc5-41b1-bc9a-0187e5eef12f">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+			</line>
 		</band>
 	</detail>
 	<columnFooter>
-		<band height="45" splitType="Stretch"/>
+		<band height="64" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="555" height="1" uuid="45c4d603-59a8-45f5-8bbf-659893472830">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+			</line>
+			<staticText>
+				<reportElement x="418" y="50" width="136" height="13" uuid="b0cc6c50-c95c-4ecc-8852-430545d42adb"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[Operario]]></text>
+			</staticText>
+		</band>
 	</columnFooter>
 </jasperReport>

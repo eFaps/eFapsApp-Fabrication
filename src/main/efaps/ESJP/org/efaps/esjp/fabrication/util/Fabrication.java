@@ -26,6 +26,7 @@ import org.efaps.api.annotation.EFapsSysConfAttribute;
 import org.efaps.api.annotation.EFapsSysConfLink;
 import org.efaps.api.annotation.EFapsSystemConfiguration;
 import org.efaps.esjp.admin.common.systemconfiguration.BooleanSysConfAttribute;
+import org.efaps.esjp.admin.common.systemconfiguration.StringSysConfAttribute;
 import org.efaps.esjp.admin.common.systemconfiguration.SysConfLink;
 import org.efaps.util.cache.CacheReloadException;
 
@@ -52,6 +53,20 @@ public final class Fabrication
                     .sysConfUUID(SYSCONFUUID)
                     .key(BASE + "Process.OneProductOnly")
                     .description("Validate that there is only one product used per process.");
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute PROCESSPROSORDRPRT = new StringSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "Process.ProcessingOrderJasperReport")
+                    .description("JasperReport.");
+
+    /** See description. */
+    @EFapsSysConfAttribute
+    public static final StringSysConfAttribute PROCESSPROSORDMIME = new StringSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "Process.ProcessingOrderMime")
+                    .description("Mime for the JasperReport.");
 
     /** See description. */
     @EFapsSysConfAttribute

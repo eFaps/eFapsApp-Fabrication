@@ -60,7 +60,6 @@ import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
 import org.efaps.esjp.products.Storage;
 import org.efaps.esjp.products.util.Products;
 import org.efaps.esjp.products.util.Products.ProductIndividual;
-import org.efaps.esjp.products.util.ProductsSettings;
 import org.efaps.esjp.sales.document.ProductionOrder;
 import org.efaps.esjp.sales.document.ProductionReport;
 import org.efaps.esjp.sales.document.UsageReport;
@@ -290,7 +289,7 @@ public abstract class OnCreateDocument_Base
 
                     valueMap.put(prodInst, map);
 
-                    if (Products.getSysConfig().getAttributeValueAsBoolean(ProductsSettings.ACTIVATEINDIVIDUAL)) {
+                    if (Products.ACTIVATEINDIVIDUAL.get()) {
                         js.append(new ProductionOrder().add4Individual(
                                         _parameter,
                                         prodInst,

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.1.0.final using JasperReports Library version 5.5.1  -->
-<!-- 2015-08-20T11:03:01 -->
+<!-- Created with Jaspersoft Studio version 6.1.1.final using JasperReports Library version 6.1.1  -->
+<!-- 2015-10-14T17:37:21 -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Fabrication_ProcessingOrder" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isFloatColumnFooter="true" whenResourceMissingType="Error" uuid="fb08fb95-d16a-4c58-b4d0-d97a993842b0">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="eFaps"/>
 	<style name="Table_TH" mode="Opaque" backcolor="#F0F8FF">
@@ -144,24 +144,24 @@ type.label as typeName]]>
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font isBold="true"/>
+					<font size="11" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CompanyName}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="40" y="16" width="390" height="18" uuid="999deafd-3909-4aef-baaf-ee94c2fdfaef">
+				<reportElement x="60" y="16" width="370" height="18" uuid="999deafd-3909-4aef-baaf-ee94c2fdfaef">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				</reportElement>
 				<box leftPadding="2"/>
 				<textElement verticalAlignment="Middle">
-					<font isBold="true"/>
+					<font size="11" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CompanyTaxNum}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="16" width="40" height="18" uuid="93930fe4-9eb6-4dbe-bc7d-ad5e9eef415f"/>
+				<reportElement x="0" y="16" width="60" height="18" uuid="93930fe4-9eb6-4dbe-bc7d-ad5e9eef415f"/>
 				<textElement verticalAlignment="Middle">
-					<font isBold="true"/>
+					<font size="11" isBold="true"/>
 				</textElement>
 				<text><![CDATA[R.U.C.:]]></text>
 			</staticText>
@@ -187,15 +187,23 @@ type.label as typeName]]>
 			</textField>
 			<textField pattern="dd/MM/yyyy HH:mm">
 				<reportElement x="430" y="0" width="125" height="16" uuid="7bbe2eaa-1e11-4a0b-9a46-668c2caa53b7"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="11"/>
+				</textElement>
 				<textFieldExpression><![CDATA[new Date()]]></textFieldExpression>
 			</textField>
 			<textField pattern="dd/MM/yyyy">
-				<reportElement x="40" y="56" width="100" height="14" uuid="89b3b44e-0f30-48d6-812a-5dbdf5a5516d"/>
+				<reportElement x="60" y="56" width="100" height="14" uuid="89b3b44e-0f30-48d6-812a-5dbdf5a5516d"/>
+				<textElement>
+					<font size="11"/>
+				</textElement>
 				<textFieldExpression><![CDATA[$F{date}.toDate()]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="56" width="40" height="14" uuid="7122dfe2-a1bb-4b1e-9c27-a2a089b161ba"/>
+				<reportElement x="0" y="56" width="60" height="14" uuid="7122dfe2-a1bb-4b1e-9c27-a2a089b161ba"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
 				<text><![CDATA[Fecha:]]></text>
 			</staticText>
 		</band>
@@ -203,8 +211,10 @@ type.label as typeName]]>
 	<columnHeader>
 		<band height="19" splitType="Stretch">
 			<staticText>
-				<reportElement x="0" y="0" width="100" height="19" uuid="73e8ac19-a92b-44b1-b77b-a6e40dc186f7"/>
-				<textElement verticalAlignment="Middle"/>
+				<reportElement x="0" y="0" width="160" height="19" uuid="73e8ac19-a92b-44b1-b77b-a6e40dc186f7"/>
+				<textElement verticalAlignment="Middle">
+					<font size="11"/>
+				</textElement>
 				<text><![CDATA[Productos:]]></text>
 			</staticText>
 			<line>
@@ -245,9 +255,9 @@ type.label as typeName]]>
 									<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 								</reportElement>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font isBold="true"/>
+									<font size="11" isBold="true"/>
 								</textElement>
-								<text><![CDATA[Candidad]]></text>
+								<text><![CDATA[Q]]></text>
 							</staticText>
 						</jr:columnHeader>
 						<jr:detailCell height="16">
@@ -255,7 +265,9 @@ type.label as typeName]]>
 							<property name="com.jaspersoft.studio.unit.height" value="px"/>
 							<textField isStretchWithOverflow="true" pattern="#,##0.###" isBlankWhenNull="true">
 								<reportElement x="0" y="0" width="60" height="16" uuid="1ffcf0db-55d2-402b-93c8-9b2b77c32c01"/>
-								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="11"/>
+								</textElement>
 								<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
@@ -273,16 +285,18 @@ type.label as typeName]]>
 									<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 								</reportElement>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font isBold="true"/>
+									<font size="11" isBold="true"/>
 								</textElement>
-								<text><![CDATA[Unidad]]></text>
+								<text><![CDATA[UND]]></text>
 							</staticText>
 						</jr:columnHeader>
 						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 								<reportElement x="0" y="0" width="45" height="16" uuid="3ccbf068-b467-445e-b073-9ab9acf779f5"/>
-								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="11"/>
+								</textElement>
 								<textFieldExpression><![CDATA[$F{uoM}]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
@@ -300,7 +314,7 @@ type.label as typeName]]>
 									<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 								</reportElement>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font isBold="true"/>
+									<font size="11" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Codigo]]></text>
 							</staticText>
@@ -314,7 +328,9 @@ type.label as typeName]]>
 									<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 									<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 								</reportElement>
-								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="11"/>
+								</textElement>
 								<textFieldExpression><![CDATA[$F{prodName}]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
@@ -330,7 +346,7 @@ type.label as typeName]]>
 									<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 								</reportElement>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font isBold="true"/>
+									<font size="11" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Descripcion]]></text>
 							</staticText>
@@ -341,7 +357,9 @@ type.label as typeName]]>
 								<reportElement x="0" y="0" width="350" height="16" uuid="7b94ae0d-711e-4ccf-b12a-3d54e433d075">
 									<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 								</reportElement>
-								<textElement verticalAlignment="Middle"/>
+								<textElement verticalAlignment="Middle">
+									<font size="11"/>
+								</textElement>
 								<textFieldExpression><![CDATA[$F{prodDescr}]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
@@ -367,6 +385,7 @@ type.label as typeName]]>
 					</datasetRun>
 					<jr:column width="60" uuid="6c4c73af-c70c-450b-9047-20b551d9e02b">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 						<jr:columnHeader height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -374,18 +393,19 @@ type.label as typeName]]>
 							<staticText>
 								<reportElement x="0" y="0" width="60" height="16" uuid="b928718c-3ad6-4a9f-a360-f11d47b2dbde"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font isBold="true"/>
+									<font size="11" isBold="true"/>
 								</textElement>
-								<text><![CDATA[Candiad]]></text>
+								<text><![CDATA[Q]]></text>
 							</staticText>
 						</jr:columnHeader>
-						<jr:columnFooter height="30"/>
 						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<property name="com.jaspersoft.studio.unit.height" value="px"/>
 							<textField pattern="#,##0.###" isBlankWhenNull="true">
 								<reportElement x="0" y="0" width="60" height="16" uuid="1e8b77f2-24a9-4ba9-83c1-3df5c44bc41a"/>
-								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="11"/>
+								</textElement>
 								<textFieldExpression><![CDATA[$F{quantity}.multiply((BigDecimal) ((Object[]) $P{PRODUCTMAP}.get($F{productionProductOID}))[0]).setScale(8)
 .multiply(new java.math.BigDecimal($F{numerator}) )
 .divide( new java.math.BigDecimal($F{denominator}), java.math.RoundingMode.HALF_UP )]]></textFieldExpression>
@@ -394,6 +414,7 @@ type.label as typeName]]>
 					</jr:column>
 					<jr:column width="45" uuid="3a86c6ca-1193-4184-8579-dae481366355">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column2"/>
 						<jr:columnHeader height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -402,63 +423,68 @@ type.label as typeName]]>
 									<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 								</reportElement>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font isBold="true"/>
+									<font size="11" isBold="true"/>
 								</textElement>
-								<text><![CDATA[Unidad]]></text>
+								<text><![CDATA[UND]]></text>
 							</staticText>
 						</jr:columnHeader>
-						<jr:columnFooter height="30"/>
 						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<textField>
 								<reportElement x="0" y="0" width="45" height="16" uuid="55e3ed43-18f9-406b-93c3-00d24d31c1c7"/>
-								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="11"/>
+								</textElement>
 								<textFieldExpression><![CDATA[((Object[]) $P{PRODUCTMAP}.get($F{productionProductOID}))[1]]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
 					</jr:column>
 					<jr:column width="80" uuid="b0c2b31d-cc61-4e72-916b-88126647736c">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column3"/>
 						<jr:columnHeader height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<property name="com.jaspersoft.studio.unit.width" value="px"/>
 							<staticText>
 								<reportElement x="0" y="0" width="80" height="16" uuid="869407f9-bf21-4fb7-8a02-debfa2bb4970"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font isBold="true"/>
+									<font size="11" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Codigo]]></text>
 							</staticText>
 						</jr:columnHeader>
-						<jr:columnFooter height="30"/>
 						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<textField>
 								<reportElement x="0" y="0" width="80" height="16" uuid="9c60536e-a53a-489f-9cdd-e282dc613247"/>
-								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="11"/>
+								</textElement>
 								<textFieldExpression><![CDATA[$F{prodName}]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
 					</jr:column>
 					<jr:column width="350" uuid="37e7cd44-0938-4689-aa0a-b0f9fc6ec24d">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column4"/>
 						<jr:columnHeader height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<staticText>
 								<reportElement x="0" y="0" width="350" height="16" uuid="fa53d848-8380-4dce-b7ab-e86d8ac16eab"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font isBold="true"/>
+									<font size="11" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Description]]></text>
 							</staticText>
 						</jr:columnHeader>
-						<jr:columnFooter height="30"/>
 						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<property name="com.jaspersoft.studio.unit.width" value="px"/>
 							<textField>
 								<reportElement x="0" y="0" width="350" height="16" uuid="beff5d11-91bf-4ebb-82dd-0131d2981223"/>
-								<textElement verticalAlignment="Middle"/>
+								<textElement verticalAlignment="Middle">
+									<font size="11"/>
+								</textElement>
 								<textFieldExpression><![CDATA[$F{prodDesc}]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
@@ -466,8 +492,10 @@ type.label as typeName]]>
 				</jr:table>
 			</componentElement>
 			<staticText>
-				<reportElement x="0" y="0" width="100" height="19" uuid="d66157b6-014b-40a3-899d-f405653e5dfd"/>
-				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<reportElement x="0" y="0" width="160" height="19" uuid="d66157b6-014b-40a3-899d-f405653e5dfd"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="11"/>
+				</textElement>
 				<text><![CDATA[Insumos:]]></text>
 			</staticText>
 			<line>
@@ -495,7 +523,9 @@ type.label as typeName]]>
 				<box>
 					<topPen lineWidth="1.0"/>
 				</box>
-				<textElement textAlignment="Center"/>
+				<textElement textAlignment="Center">
+					<font size="11"/>
+				</textElement>
 				<text><![CDATA[Operario]]></text>
 			</staticText>
 		</band>

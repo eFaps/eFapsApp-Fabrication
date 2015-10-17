@@ -24,6 +24,9 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +38,7 @@ import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
+import org.efaps.db.CachedPrintQuery;
 import org.efaps.db.Context;
 import org.efaps.db.Instance;
 import org.efaps.db.MultiPrintQuery;
@@ -57,9 +61,11 @@ import org.efaps.esjp.fabrication.report.ProcessReport;
 import org.efaps.esjp.fabrication.report.ProcessReport_Base.DataBean;
 import org.efaps.esjp.fabrication.report.ProcessReport_Base.ValuesBean;
 import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.BOMBean;
-import org.efaps.esjp.products.Storage;
+import org.efaps.esjp.fabrication.util.Fabrication;
+import org.efaps.esjp.products.Product_Base;
 import org.efaps.esjp.products.util.Products;
 import org.efaps.esjp.products.util.Products.ProductIndividual;
+import org.efaps.esjp.sales.document.AbstractDocument_Base.AbstractUIPosition;
 import org.efaps.esjp.sales.document.ProductionOrder;
 import org.efaps.esjp.sales.document.ProductionReport;
 import org.efaps.esjp.sales.document.UsageReport;
@@ -325,14 +331,9 @@ public abstract class OnCreateDocument_Base
         throws EFapsException
     {
         final StringBuilder js = new StringBuilder();
-        final Instance storageInst = Storage.getDefaultStorage(_parameter,
-                        new UsageReport().getTypeName4SysConf(_parameter));
+        final UsageReportWrapper wrapper = new UsageReportWrapper();
 
         final Map<Instance, BOMBean> ins2map = new Process().getInstance2BOMMap(_parameter);
-        final DecimalFormat qtyFrmt = NumberFormatter.get().getFrmt4Quantity(
-                        new UsageReport().getTypeName4SysConf(_parameter));
-
-        final List<Map<String, Object>> values = new ArrayList<Map<String, Object>>();
 
         final StringBuilder noteBldr = new StringBuilder();
         final QueryBuilder atrtQueryBldr= new QueryBuilder(CIFabrication.Process2ProductionOrder);
@@ -346,8 +347,7 @@ public abstract class OnCreateDocument_Base
         multi.execute();
         while (multi.next()) {
             noteBldr.append(multi.getAttribute(CISales.ProductionOrderPosition.Quantity))
-                .append(" ")
-                .append(multi.getAttribute(CISales.ProductionOrderPosition.ProductDesc));
+                .append(" ").append(multi.getAttribute(CISales.ProductionOrderPosition.ProductDesc));
         }
         js.append(getSetFieldValue(0, CIFormSales.Sales_UsageReportForm.note.name, noteBldr.toString()));
 
@@ -366,25 +366,53 @@ public abstract class OnCreateDocument_Base
                         .append(getSetFieldValue(0, CIFormSales.Sales_UsageReportForm.fabricationProcessData.name,
                                         bldr.toString()));
         }
+
+        final List<AbstractUIPosition> beans = new ArrayList<>();
         for (final BOMBean mat : ins2map.values()) {
-            final Map<String, Object> map = new HashMap<String, Object>();
-            final StringBuilder jsUoM = new StringBuilder("new Array('").append(mat.getUomID()).append("','").
-                            append(mat.getUomID()).append("','").append(mat.getUom()).append("')");
-            map.put(CITableSales.Sales_UsageReportPositionTable.quantity.name, qtyFrmt.format(mat.getQuantity()));
-            map.put(CITableSales.Sales_UsageReportPositionTable.product.name, new String[] {
-                            mat.getMatInstance().getOid(),
-                            mat.getMatName() });
-            map.put(CITableSales.Sales_UsageReportPositionTable.productDesc.name, mat.getMatDescription());
-            map.put(CITableSales.Sales_UsageReportPositionTable.uoM.name, jsUoM);
-            map.put(CITableSales.Sales_UsageReportPositionTable.quantityInStock.name,
-                            getStock4ProductInStorage(_parameter, mat.getMatInstance(), storageInst));
-            values.add(map);
+            final AbstractUIPosition origBean = wrapper.getUIPosition(_parameter)
+                            .setInstance(Instance.get("1.1"))
+                            .setProdInstance(mat.getMatInstance())
+                            .setQuantity(mat.getQuantity())
+                            .setUoM(mat.getUomID())
+                            .setProdName(mat.getMatName())
+                            .setProdDescr(mat.getMatDescription());
+            if (Products.ACTIVATEINDIVIDUAL.get() && Fabrication.USAGERPTSTOR4IND.get() != null
+                            && Fabrication.USAGERPTSTOR4IND.get().isValid()) {
+                final PrintQuery print = new CachedPrintQuery(origBean.getProdInstance(), Product_Base.CACHEKEY4PRODUCT);
+                print.addAttribute(CIProducts.ProductAbstract.Individual);
+                print.execute();
+                final ProductIndividual indivual = print.<ProductIndividual>getAttribute(
+                                CIProducts.ProductAbstract.Individual);
+                switch (indivual) {
+                    case BATCH:
+                    case INDIVIDUAL:
+                        origBean.setStorageInst(Fabrication.USAGERPTSTOR4IND.get());
+                        break;
+                    default:
+                        break;
+                }
+            }
+            beans.addAll(wrapper.updateBean4Indiviual(_parameter, origBean));
         }
+
+        final List<Map<String, Object>> strValues = wrapper.convertMap4Script(_parameter, beans);
+
+        Collections.sort(strValues, new Comparator<Map<String, Object>>()
+        {
+            @Override
+            public int compare(final Map<String, Object> _o1,
+                               final Map<String, Object> _o2)
+            {
+                return String.valueOf(_o1.get("productAutoComplete"))
+                                .compareTo(String.valueOf(_o2.get("productAutoComplete")));
+            }
+        });
+
         final Set<String> noEscape = new HashSet<String>();
         noEscape.add("uoM");
 
         js.append(getTableRemoveScript(_parameter, "positionTable", false, false))
-                        .append(getTableAddNewRowsScript(_parameter, "positionTable", values,
+                        .append(getTableAddNewRowsScript(_parameter, "positionTable", strValues,
                                         null, false, false, noEscape));
         return js;
     }
@@ -395,27 +423,31 @@ public abstract class OnCreateDocument_Base
         return 0;
     }
 
-    protected String getStock4ProductInStorage(final Parameter _parameter,
-                                               final Instance _productinst,
-                                               final Instance _storageInst)
-        throws EFapsException
-    {
-        return new Clase().getStock4ProductInStorage(_parameter, _productinst, _storageInst);
-    }
 
-    public class Clase
+    public class UsageReportWrapper
         extends UsageReport
     {
 
         @Override
-        protected String getStock4ProductInStorage(final Parameter _parameter,
-                                                   final Instance _productinst,
-                                                   final Instance _storageInst)
+        protected List<AbstractUIPosition> updateBean4Indiviual(final Parameter _parameter,
+                                                                final AbstractUIPosition _bean)
             throws EFapsException
         {
-            return super.getStock4ProductInStorage(_parameter, _productinst, _storageInst);
+            return super.updateBean4Indiviual(_parameter, _bean);
         }
 
-    }
+        @Override
+        protected AbstractUIPosition getUIPosition(final Parameter _parameter)
+        {
+            return super.getUIPosition(_parameter);
+        }
 
+        @Override
+        protected List<Map<String, Object>> convertMap4Script(final Parameter _parameter,
+                                                              final Collection<AbstractUIPosition> _values)
+            throws EFapsException
+        {
+            return super.convertMap4Script(_parameter, _values);
+        }
+    }
 }

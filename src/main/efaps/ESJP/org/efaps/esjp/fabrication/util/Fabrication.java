@@ -89,6 +89,13 @@ public final class Fabrication
                     .key(BASE + "Currency4ProcessReport")
                     .description("Set which table to show.");
 
+    /** See description. */
+    @EFapsSysConfLink
+    public static final SysConfLink USAGERPTSTOR4IND = new SysConfLink()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "UsageReport.Storage4Individual")
+                    .description("The storage to be used 4 individual products.");
+
     /**
      * Singelton.
      */

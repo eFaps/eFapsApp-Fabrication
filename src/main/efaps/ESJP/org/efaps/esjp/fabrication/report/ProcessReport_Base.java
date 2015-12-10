@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2014 The eFaps Team
+ * Copyright 2003 - 2015 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import java.util.UUID;
 import org.efaps.admin.datamodel.Dimension;
 import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.datamodel.Status;
-import org.efaps.admin.dbproperty.DBProperties;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Parameter.ParameterValues;
 import org.efaps.admin.event.Return;
@@ -84,13 +83,13 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 public abstract class ProcessReport_Base
     extends AbstractCommon
 {
-
-    private Instance currencyInstance;
-
     /**
      * Logging instance used in this class.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ProcessReport.class);
+
+    /** The currency instance. */
+    private Instance currencyInstance;
 
     /**
      * @param _parameter Parameter as passed by the eFasp API
@@ -119,7 +118,7 @@ public abstract class ProcessReport_Base
         final Map<?, ?> props = (Map<?, ?>) _parameter.get(ParameterValues.PROPERTIES);
         final String mime = (String) props.get("Mime");
         final AbstractDynamicReport dyRp = getReport(_parameter);
-        dyRp.setFileName(DBProperties.getProperty(ProcessReport.class.getName() + ".FileName"));
+        dyRp.setFileName(getDBProperty("FileName"));
         File file = null;
         if ("xls".equalsIgnoreCase(mime)) {
             file = dyRp.getExcel(_parameter);
@@ -132,7 +131,11 @@ public abstract class ProcessReport_Base
     }
 
     /**
-     * @param _parameter
+     * Gets the values.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the values
+     * @throws EFapsException on error
      */
     public ValuesBean getValues(final Parameter _parameter)
         throws EFapsException
@@ -252,6 +255,7 @@ public abstract class ProcessReport_Base
                 } else {
                     bean = getDataBean(_parameter);
                     ret.getDataMap().put(prodInst, bean);
+                    bean.setCurrencyInst(getCurrencyInstance());
                     bean.setDate(date);
                     bean.setProdInstance(prodInst);
                     bean.setProdName(multi.<String>getSelect(prodNameSel));
@@ -264,6 +268,11 @@ public abstract class ProcessReport_Base
         return ret;
     }
 
+    /**
+     * Gets the currency instance.
+     *
+     * @return the currency instance
+     */
     public Instance getCurrencyInstance()
     {
         return this.currencyInstance;
@@ -281,8 +290,10 @@ public abstract class ProcessReport_Base
     }
 
     /**
-     * @param _parameter
-     * @return
+     * Gets the data bean.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the data bean
      */
     protected DataBean getDataBean(final Parameter _parameter)
     {
@@ -301,28 +312,43 @@ public abstract class ProcessReport_Base
 
     }
 
+    /**
+     * The Class DynProcessReport.
+     */
     public static class DynProcessReport
         extends AbstractDynamicReport
     {
 
-        private final ProcessReport_Base container;
+        /** The reportContainer. */
+        private final ProcessReport_Base reportContainer;
 
-        public DynProcessReport(final ProcessReport_Base _container)
+        /**
+         * Instantiates a new dyn process report.
+         *
+         * @param _reportContainer the report
+         * @throws EFapsException on error
+         */
+        public DynProcessReport(final ProcessReport_Base _reportContainer)
             throws EFapsException
         {
-            this.container = _container;
+            this.reportContainer = _reportContainer;
         }
 
-        protected ProcessReport_Base getContainer()
+        /**
+         * Gets the report conatiner.
+         *
+         * @return the report conatiner
+         */
+        protected ProcessReport_Base getReportContainer()
         {
-            return this.container;
+            return this.reportContainer;
         }
 
         @Override
         protected JRDataSource createDataSource(final Parameter _parameter)
             throws EFapsException
         {
-            final ValuesBean values = getContainer().getValues(_parameter);
+            final ValuesBean values = getReportContainer().getValues(_parameter);
 
             final List<DataBean> datasource = new ArrayList<>(values.getDataMap().values());
             Collections.sort(datasource, new Comparator<DataBean>()
@@ -343,6 +369,13 @@ public abstract class ProcessReport_Base
             return new JRBeanCollectionDataSource(datasource);
         }
 
+        /**
+         * Creates the title.
+         *
+         * @param _parameter Parameter as passed by the eFaps API
+         * @param _beans the beans
+         * @throws EFapsException on error
+         */
         protected void createTitle(final Parameter _parameter,
                                    final Collection<DataBean> _beans)
             throws EFapsException
@@ -368,11 +401,18 @@ public abstract class ProcessReport_Base
                                             DynamicReports.cmp.text(fabrication.toString()).setStyle(style)));
         }
 
+        /**
+         * Creates the summary.
+         *
+         * @param _parameter Parameter as passed by the eFaps API
+         * @param _values the values
+         * @throws EFapsException on error
+         */
         protected void createSummary(final Parameter _parameter,
                                      final ValuesBean _values)
             throws EFapsException
         {
-            if ( showCost(_parameter)) {
+            if (showCost(_parameter)) {
                 _values.calculateCost(_parameter);
                 final StyleBuilder style = DynamicReports.stl.style().setBold(true).setFontSize(14);
                 final VerticalListBuilder vl = DynamicReports.cmp.verticalList();
@@ -394,64 +434,57 @@ public abstract class ProcessReport_Base
         {
             final boolean cost = showCost(_parameter);
 
-            final TextColumnBuilder<String> prodNameColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.ProdName"),
+            final TextColumnBuilder<String> prodNameColumn = DynamicReports.col.column(getReportContainer()
+                            .getDBProperty("Column.ProdName"),
                             "prodName", DynamicReports.type.stringType());
-            final TextColumnBuilder<String> prodDescriptionColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.ProdDescription"),
-                            "prodDescription", DynamicReports.type.stringType());
+            final TextColumnBuilder<String> prodDescriptionColumn = DynamicReports.col.column(getReportContainer()
+                            .getDBProperty("Column.ProdDescription"), "prodDescription",
+                            DynamicReports.type.stringType());
 
-            final TextColumnBuilder<String> prodUoMColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.ProdUoM"),
-                            "prodUoM", DynamicReports.type.stringType());
+            final TextColumnBuilder<String> prodUoMColumn = DynamicReports.col.column(getReportContainer()
+                           .getDBProperty("Column.ProdUoM"), "prodUoM", DynamicReports.type.stringType());
 
-            final TextColumnBuilder<BigDecimal> orderQuantityColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.OrderQuantity"),
-                            "orderQuantity", DynamicReports.type.bigDecimalType());
+            final TextColumnBuilder<BigDecimal> orderQuantityColumn = DynamicReports.col.column(getReportContainer()
+                            .getDBProperty("Column.OrderQuantity"), "orderQuantity",
+                            DynamicReports.type.bigDecimalType());
 
-            final TextColumnBuilder<BigDecimal> orderCostColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.OrderCost"),
-                            "orderCost", DynamicReports.type.bigDecimalType());
+            final TextColumnBuilder<BigDecimal> orderCostColumn = DynamicReports.col.column(getReportContainer()
+                            .getDBProperty("Column.OrderCost"), "orderCost", DynamicReports.type.bigDecimalType());
 
-            final TextColumnBuilder<BigDecimal> usageQuantityColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.UsageQuantity"),
-                            "usageQuantity", DynamicReports.type.bigDecimalType());
+            final TextColumnBuilder<BigDecimal> usageQuantityColumn = DynamicReports.col.column(getReportContainer()
+                            .getDBProperty("Column.UsageQuantity"), "usageQuantity",
+                            DynamicReports.type.bigDecimalType());
 
-            final TextColumnBuilder<BigDecimal> usageCostColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.UsageCost"),
-                            "usageCost", DynamicReports.type.bigDecimalType());
+            final TextColumnBuilder<BigDecimal> usageCostColumn = DynamicReports.col.column(getReportContainer()
+                            .getDBProperty("Column.UsageCost"), "usageCost", DynamicReports.type.bigDecimalType());
 
-            final TextColumnBuilder<BigDecimal> fabricatedQuantityColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.FabricatedQuantity"),
+            final TextColumnBuilder<BigDecimal> fabricatedQuantityColumn = DynamicReports.col.column(
+                            getReportContainer().getDBProperty("Column.FabricatedQuantity"),
                             "fabricatedQuantity", DynamicReports.type.bigDecimalType());
 
-            final TextColumnBuilder<BigDecimal> fabricatedCostColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.FabricatedCost"),
+            final TextColumnBuilder<BigDecimal> fabricatedCostColumn = DynamicReports.col.column(getReportContainer()
+                            .getDBProperty("Column.FabricatedCost"),
                             "fabricatedCost", DynamicReports.type.bigDecimalType());
 
-            final TextColumnBuilder<BigDecimal> percentColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.Percent"),
+            final TextColumnBuilder<BigDecimal> percentColumn = DynamicReports.col.column(getReportContainer()
+                            .getDBProperty("Column.Percent"),
                             "percent", DynamicReports.type.bigDecimalType());
 
-            final TextColumnBuilder<BigDecimal> differenceColumn = DynamicReports.col.column(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".Column.Difference"),
+            final TextColumnBuilder<BigDecimal> differenceColumn = DynamicReports.col.column(getReportContainer()
+                            .getDBProperty("Column.Difference"),
                             "difference", DynamicReports.type.bigDecimalType());
 
-            final ColumnTitleGroupBuilder prodGrid = DynamicReports.grid.titleGroup(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Prod"));
-            final ColumnTitleGroupBuilder orderGrid = DynamicReports.grid.titleGroup(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Order")
-                            , orderQuantityColumn);
-            final ColumnTitleGroupBuilder usageGrid = DynamicReports.grid.titleGroup(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Usage")
-                            , usageQuantityColumn);
-            final ColumnTitleGroupBuilder fabricatedGrid = DynamicReports.grid.titleGroup(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Fabricated"),
-                            fabricatedQuantityColumn);
+            final ColumnTitleGroupBuilder prodGrid = DynamicReports.grid.titleGroup(getReportContainer()
+                            .getDBProperty("ColumnGroup.Prod"));
+            final ColumnTitleGroupBuilder orderGrid = DynamicReports.grid.titleGroup(getReportContainer()
+                            .getDBProperty("ColumnGroup.Order"), orderQuantityColumn);
+            final ColumnTitleGroupBuilder usageGrid = DynamicReports.grid.titleGroup(getReportContainer()
+                            .getDBProperty("ColumnGroup.Usage"), usageQuantityColumn);
+            final ColumnTitleGroupBuilder fabricatedGrid = DynamicReports.grid.titleGroup(getReportContainer()
+                            .getDBProperty("ColumnGroup.Fabricated"), fabricatedQuantityColumn);
 
-            final ColumnTitleGroupBuilder analysisGrid = DynamicReports.grid.titleGroup(DBProperties
-                            .getProperty(ProcessReport.class.getName() + ".ColumnGroup.Analysis"),
-                            percentColumn, differenceColumn);
+            final ColumnTitleGroupBuilder analysisGrid = DynamicReports.grid.titleGroup(getReportContainer()
+                            .getDBProperty("ColumnGroup.Analysis"), percentColumn, differenceColumn);
 
             final ConditionalStyleBuilder conditionRed = DynamicReports.stl.conditionalStyle(
                             DynamicReports.cnd.smaller(differenceColumn, 0))
@@ -499,6 +532,13 @@ public abstract class ProcessReport_Base
             }
         }
 
+        /**
+         * Show cost.
+         *
+         * @param _parameter Parameter as passed by the eFaps API
+         * @return true, if successful
+         * @throws EFapsException on error
+         */
         protected boolean showCost(final Parameter _parameter)
             throws EFapsException
         {
@@ -509,7 +549,6 @@ public abstract class ProcessReport_Base
                                             .isAssigned(Role.get(UUID
                                                             .fromString("fe489cb2-94ec-442d-975f-36d0f4fbc589")));
         }
-
     }
 
     /**
@@ -541,10 +580,16 @@ public abstract class ProcessReport_Base
         }
     }
 
+    /**
+     * The Class ValuesBean.
+     */
     public static class ValuesBean
     {
 
+        /** The data map. */
         private final Map<Instance, DataBean> dataMap = new HashMap<>();
+
+        /** The para map. */
         private final Map<Instance, DataBean> paraMap = new HashMap<>();
 
         /**
@@ -567,7 +612,14 @@ public abstract class ProcessReport_Base
             return this.paraMap;
         }
 
-        public void calculateCost(final Parameter _parameter)
+        /**
+         * Calculate cost.
+         *
+         * @param _parameter Parameter as passed by the eFaps API
+         * @return the values bean
+         * @throws EFapsException on error
+         */
+        public ValuesBean calculateCost(final Parameter _parameter)
             throws EFapsException
         {
             for (final DataBean parentBean : this.paraMap.values()) {
@@ -578,32 +630,71 @@ public abstract class ProcessReport_Base
                     }
                 }
             }
+            return this;
         }
     }
 
+    /**
+     * The Class DataBean.
+     */
     public static class DataBean
     {
 
+        /** The date. */
         private DateTime date;
+
+        /** The prod dimension. */
         private Dimension prodDimension;
+
+        /** The prod description. */
         private String prodDescription;
+
+        /** The prod name. */
         private String prodName;
+
+        /** The prod inst. */
         private Instance prodInst;
+
+        /** The parent prod inst. */
         private Instance parentProdInst;
+
+        /** The order quantity. */
         private BigDecimal orderQuantity = BigDecimal.ZERO;
+
+        /** The usage quantity. */
         private BigDecimal usageQuantity = BigDecimal.ZERO;
+
+        /** The fabricated quantity. */
         private BigDecimal fabricatedQuantity = BigDecimal.ZERO;
+
+        /** The currency inst. */
         private Instance currencyInst;
+
+        /** The cost. */
         private BigDecimal cost = BigDecimal.ZERO;
 
+        /** The init. */
         private boolean init;
+
+        /** The parameter. */
         private Parameter parameter;
 
+        /**
+         * Instantiates a new data bean.
+         *
+         * @param _parameter Parameter as passed by the eFaps API
+         */
         public DataBean(final Parameter _parameter)
         {
             this.parameter = _parameter;
         }
 
+        /**
+         * Initialize.
+         *
+         * @param _parameter Parameter as passed by the eFaps API
+         * @throws EFapsException on error
+         */
         protected void initialize(final Parameter _parameter)
             throws EFapsException
         {
@@ -613,62 +704,96 @@ public abstract class ProcessReport_Base
             }
         }
 
+        /**
+         * Gets the prod uo m.
+         *
+         * @return the prod uo m
+         */
         public String getProdUoM()
         {
             return getProdDimension().getBaseUoM().getName();
         }
 
+        /**
+         * Gets the oid.
+         *
+         * @return the oid
+         */
         public String getOid()
         {
             return getProdInst() == null ? null : this.getProdInst().getOid();
         }
 
         /**
-         * @param _prodInst
+         * Sets the prod instance.
+         *
+         * @param _prodInst the prod inst
+         * @return the data bean
          */
-        public void setProdInstance(final Instance _prodInst)
+        public DataBean setProdInstance(final Instance _prodInst)
         {
             this.prodInst = _prodInst;
+            return this;
         }
 
         /**
-         * @param _bomQuan
+         * Adds the order.
+         *
+         * @param _orderQuantity the order quantity
+         * @return the data bean
          */
-        public void addOrder(final BigDecimal _orderQuantity)
+        public DataBean addOrder(final BigDecimal _orderQuantity)
         {
             this.orderQuantity = this.orderQuantity.add(_orderQuantity);
+            return this;
         }
 
         /**
-         * @param _bomQuan
+         * Adds the usage.
+         *
+         * @param _usageQuantity the usage quantity
+         * @return the data bean
          */
-        public void addUsage(final BigDecimal _usageQuantity)
+        public DataBean addUsage(final BigDecimal _usageQuantity)
         {
             this.usageQuantity = this.usageQuantity.add(_usageQuantity);
+            return this;
         }
 
         /**
-         * @param _bomQuan
+         * Adds the fabrication.
+         *
+         * @param _fabricatedQuantity the fabricated quantity
+         * @return the data bean
          */
-        public void addFabrication(final BigDecimal _fabricatedQuantity)
+        public DataBean addFabrication(final BigDecimal _fabricatedQuantity)
         {
             this.fabricatedQuantity = this.fabricatedQuantity.add(_fabricatedQuantity);
+            return this;
         }
 
         /**
-         * @param _select
+         * Sets the prod description.
+         *
+         * @param _prodDescription the prod description
+         * @return the data bean
          */
-        public void setProdDescription(final String _prodDescription)
+        public DataBean setProdDescription(final String _prodDescription)
         {
             this.prodDescription = _prodDescription;
+            return this;
         }
 
         /**
-         * @param _select
+         * Sets the prod name.
+         *
+         * @param _prodName the prod name
+         * @return the data bean
          */
-        public void setProdName(final String _prodName)
+        public DataBean setProdName(final String _prodName)
         {
             this.prodName = _prodName;
+            return this;
         }
 
         /**
@@ -685,10 +810,12 @@ public abstract class ProcessReport_Base
          * Setter method for instance variable {@link #prodInst}.
          *
          * @param _prodInst value for instance variable {@link #prodInst}
+         * @return the data bean
          */
-        public void setProdInst(final Instance _prodInst)
+        public DataBean setProdInst(final Instance _prodInst)
         {
             this.prodInst = _prodInst;
+            return this;
         }
 
         /**
@@ -705,6 +832,7 @@ public abstract class ProcessReport_Base
          * Setter method for instance variable {@link #prodInst}.
          *
          * @param _prodInst value for instance variable {@link #prodInst}
+         * @return the data bean
          */
         public DataBean setCurrencyInst(final Instance _prodInst)
         {
@@ -746,6 +874,7 @@ public abstract class ProcessReport_Base
          * Getter method for the instance variable {@link #orderQuantity}.
          *
          * @return value of instance variable {@link #orderQuantity}
+         * @throws EFapsException on error
          */
         public BigDecimal getOrderCost()
             throws EFapsException
@@ -758,10 +887,12 @@ public abstract class ProcessReport_Base
          *
          * @param _orderQuantity value for instance variable
          *            {@link #orderQuantity}
+         * @return the data bean
          */
-        public void setOrderQuantity(final BigDecimal _orderQuantity)
+        public DataBean setOrderQuantity(final BigDecimal _orderQuantity)
         {
             this.orderQuantity = _orderQuantity;
+            return this;
         }
 
         /**
@@ -778,6 +909,7 @@ public abstract class ProcessReport_Base
          * Getter method for the instance variable {@link #usageQuantity}.
          *
          * @return value of instance variable {@link #usageQuantity}
+         * @throws EFapsException on error
          */
         public BigDecimal getUsageCost()
             throws EFapsException
@@ -790,10 +922,12 @@ public abstract class ProcessReport_Base
          *
          * @param _usageQuantity value for instance variable
          *            {@link #usageQuantity}
+         * @return the data bean
          */
-        public void setUsageQuantity(final BigDecimal _usageQuantity)
+        public DataBean setUsageQuantity(final BigDecimal _usageQuantity)
         {
             this.usageQuantity = _usageQuantity;
+            return this;
         }
 
         /**
@@ -810,12 +944,20 @@ public abstract class ProcessReport_Base
          * Setter method for instance variable {@link #date}.
          *
          * @param _date value for instance variable {@link #date}
+         * @return the data bean
          */
-        public void setDate(final DateTime _date)
+        public DataBean setDate(final DateTime _date)
         {
             this.date = _date;
+            return this;
         }
 
+        /**
+         * Gets the unit cost.
+         *
+         * @return the unit cost
+         * @throws EFapsException on error
+         */
         public BigDecimal getUnitCost()
             throws EFapsException
         {
@@ -830,6 +972,7 @@ public abstract class ProcessReport_Base
          * Getter method for the instance variable {@link #cost}.
          *
          * @return value of instance variable {@link #cost}
+         * @throws EFapsException on error
          */
         public BigDecimal getCost()
             throws EFapsException
@@ -841,15 +984,24 @@ public abstract class ProcessReport_Base
         /**
          * Getter method for the instance variable {@link #cost}.
          *
+         * @param _cost the cost
          * @return value of instance variable {@link #cost}
+         * @throws EFapsException on error
          */
-        public void addCost(final BigDecimal _cost)
+        public DataBean addCost(final BigDecimal _cost)
             throws EFapsException
         {
             this.init = true;
             this.cost = this.cost.add(_cost);
+            return this;
         }
 
+        /**
+         * Gets the percent.
+         *
+         * @return the percent
+         * @throws EFapsException on error
+         */
         public BigDecimal getPercent()
             throws EFapsException
         {
@@ -862,6 +1014,12 @@ public abstract class ProcessReport_Base
                             .multiply(getUsageQuantity()).setScale(2, BigDecimal.ROUND_HALF_UP);
         }
 
+        /**
+         * Gets the difference.
+         *
+         * @return the difference
+         * @throws EFapsException on error
+         */
         public BigDecimal getDifference()
             throws EFapsException
         {
@@ -872,10 +1030,12 @@ public abstract class ProcessReport_Base
          * Setter method for instance variable {@link #cost}.
          *
          * @param _cost value for instance variable {@link #cost}
+         * @return the data bean
          */
-        public void setCost(final BigDecimal _cost)
+        public DataBean setCost(final BigDecimal _cost)
         {
             this.cost = _cost;
+            return this;
         }
 
         /**
@@ -893,16 +1053,19 @@ public abstract class ProcessReport_Base
          *
          * @param _fabricatedQuantity value for instance variable
          *            {@link #fabricatedQuantity}
+         * @return the data bean
          */
-        public void setFabricatedQuantity(final BigDecimal _fabricatedQuantity)
+        public DataBean setFabricatedQuantity(final BigDecimal _fabricatedQuantity)
         {
             this.fabricatedQuantity = _fabricatedQuantity;
+            return this;
         }
 
         /**
          * Getter method for the instance variable {@link #usageQuantity}.
          *
          * @return value of instance variable {@link #usageQuantity}
+         * @throws EFapsException on error
          */
         public BigDecimal getFabricatedCost()
             throws EFapsException
@@ -925,10 +1088,12 @@ public abstract class ProcessReport_Base
          *
          * @param _prodDimension value for instance variable
          *            {@link #prodDimension}
+         * @return the data bean
          */
-        public void setProdDimension(final Dimension _prodDimension)
+        public DataBean setProdDimension(final Dimension _prodDimension)
         {
             this.prodDimension = _prodDimension;
+            return this;
         }
 
         /**
@@ -946,12 +1111,13 @@ public abstract class ProcessReport_Base
          *
          * @param _parentProdInst value for instance variable
          *            {@link #parentProdInst}
+         * @return the data bean
          */
-        public void setParentProdInst(final Instance _parentProdInst)
+        public DataBean setParentProdInst(final Instance _parentProdInst)
         {
             this.parentProdInst = _parentProdInst;
+            return this;
         }
-
 
         /**
          * Getter method for the instance variable {@link #parameter}.
@@ -963,15 +1129,16 @@ public abstract class ProcessReport_Base
             return this.parameter;
         }
 
-
         /**
          * Setter method for instance variable {@link #parameter}.
          *
          * @param _parameter value for instance variable {@link #parameter}
+         * @return the data bean
          */
-        public void setParameter(final Parameter _parameter)
+        public DataBean setParameter(final Parameter _parameter)
         {
             this.parameter = _parameter;
+            return this;
         }
     }
 }

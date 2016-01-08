@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2014 The eFaps Team
+ * Copyright 2003 - 2016 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Revision:        $Rev$
- * Last Changed:    $Date$
- * Last Changed By: $Author$
  */
 
 package org.efaps.esjp.fabrication;
@@ -84,9 +81,16 @@ public abstract class Process_Base
     extends CommonDocument
 {
 
-    protected static String REQUESTKEY = Process.class.getName() + ".RequestKey";
+    /** The requestkey. */
+    protected static final String REQUESTKEY = Process.class.getName() + ".RequestKey";
 
-
+    /**
+     * Register cost.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the return
+     * @throws EFapsException on error
+     */
     public Return registerCost(final Parameter _parameter)
         throws EFapsException
     {
@@ -113,6 +117,13 @@ public abstract class Process_Base
         return new Return();
     }
 
+    /**
+     * Gets the java script4 cost ui value.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the java script4 cost ui value
+     * @throws EFapsException on error
+     */
     public Return getJavaScript4CostUIValue(final Parameter _parameter)
         throws EFapsException
     {
@@ -142,6 +153,13 @@ public abstract class Process_Base
         return retVal;
     }
 
+    /**
+     * Creates the.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the return
+     * @throws EFapsException on error
+     */
     public Return create(final Parameter _parameter)
         throws EFapsException
     {
@@ -182,15 +200,27 @@ public abstract class Process_Base
     }
 
 
+    /**
+     * Creates the usage report.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the return
+     * @throws EFapsException on error
+     */
     public Return createUsageReport(final Parameter _parameter)
         throws EFapsException
     {
-        final UsageReport usRep = new UsageReport(){
-
-        };
+        final UsageReport usRep = new UsageReport();
         return usRep.create(_parameter);
     }
 
+    /**
+     * Gets the instance2 bom map.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the instance2 bom map
+     * @throws EFapsException on error
+     */
     public Map<Instance, BOMBean> getInstance2BOMMap(final Parameter _parameter)
         throws EFapsException
     {
@@ -258,6 +288,13 @@ public abstract class Process_Base
         return inst2bom;
     }
 
+    /**
+     * Auto complete4 storage.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the return
+     * @throws EFapsException on error
+     */
     public Return autoComplete4Storage(final Parameter _parameter)
         throws EFapsException
     {
@@ -321,10 +358,36 @@ public abstract class Process_Base
         print.execute();
 
         final StringBuilder bldr = new StringBuilder().append(print.getAttribute(CIFabrication.ProcessAbstract.Name))
-                        .append(" - ").append(print.<DateTime>getAttribute( CIFabrication.ProcessAbstract.Date)
+                        .append(" - ").append(print.<DateTime>getAttribute(CIFabrication.ProcessAbstract.Date)
                                         .toString("dd/MM/yyyy", Context.getThreadContext().getLocale()));
 
         map.put(projDataField, bldr.toString());
+        list.add(map);
+        ret.put(ReturnValues.VALUES, list);
+        return ret;
+    }
+
+    /**
+     * Update fields4 production order.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the return
+     * @throws EFapsException on error
+     */
+    public Return updateFields4ProductionOrder(final Parameter _parameter)
+        throws EFapsException
+    {
+        final Return ret = new Return();
+        final List<Map<String, Object>> list = new ArrayList<>();
+        final Map<String, Object> map = new HashMap<>();
+        final Instance instance = Instance.get(_parameter.getParameterValue(
+                        CIFormFabrication.Fabrication_ProcessForm.productionOrder.name));
+
+        final PrintQuery print = new PrintQuery(instance);
+        print.addAttribute(CISales.ProductionOrder.Note);
+        print.execute();
+
+        map.put(CIFormFabrication.Fabrication_ProcessForm.note.name, print.getAttribute(CISales.ProductionOrder.Note));
         list.add(map);
         ret.put(ReturnValues.VALUES, list);
         return ret;
@@ -446,7 +509,7 @@ public abstract class Process_Base
                 }
             }
         }
-        ;
+
         if (warnings.isEmpty()) {
             ret.put(ReturnValues.TRUE, true);
         } else {
@@ -459,6 +522,13 @@ public abstract class Process_Base
     }
 
 
+    /**
+     * Trigger4 rel2 production order.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the return
+     * @throws EFapsException on error
+     */
     public Return trigger4Rel2ProductionOrder(final Parameter _parameter)
         throws EFapsException
     {
@@ -484,8 +554,6 @@ public abstract class Process_Base
         }
         return new Return();
     }
-
-
 
     /**
      * @param _parameter Parameter as passed by the eFaps API
@@ -523,6 +591,13 @@ public abstract class Process_Base
         return search.execute(_parameter);
     }
 
+    /**
+     * Gets the java script ui value.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the java script ui value
+     * @throws EFapsException on error
+     */
     public Return getJavaScriptUIValue(final Parameter _parameter)
         throws EFapsException
     {
@@ -534,8 +609,11 @@ public abstract class Process_Base
 
 
     /**
-     * @param _parameter
-     * @return
+     * Gets the java script.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the java script
+     * @throws EFapsException on error
      */
     private CharSequence getJavaScript(final Parameter _parameter)
         throws EFapsException
@@ -546,22 +624,26 @@ public abstract class Process_Base
             final Instance inst = Instance.get(oid);
             if (inst.isValid() && inst.getType().isCIType(CISales.ProductionOrder)) {
                 final PrintQuery print = new PrintQuery(inst);
-                print.addAttribute(CISales.ProductionOrder.Name);
+                print.addAttribute(CISales.ProductionOrder.Name, CISales.ProductionOrder.Note);
                 print.execute();
                 ret.append(getSetFieldValue(0, CIFormFabrication.Fabrication_ProcessForm.productionOrder.name,
-                                inst.getOid(), print.<String>getAttribute(CISales.ProductionOrder.Name)));
+                                inst.getOid(), print.<String>getAttribute(CISales.ProductionOrder.Name)))
+                    .append(getSetFieldValue(0, CIFormFabrication.Fabrication_ProcessForm.note.name,
+                                    print.<String>getAttribute(CISales.ProductionOrder.Note)));
             } else if (inst.isValid() && inst.getType().isCIType(CISales.ProductionOrderPosition)) {
                 final PrintQuery print = new PrintQuery(inst);
-                final SelectBuilder selInst = SelectBuilder.get()
-                                .linkto(CISales.ProductionOrderPosition.ProductionOrderLink).instance();
-                final SelectBuilder selName = SelectBuilder.get()
-                                .linkto(CISales.ProductionOrderPosition.ProductionOrderLink)
-                                .attribute(CISales.ProductionOrder.Name);
-                print.addSelect(selInst, selName);
+                final SelectBuilder selProdOrd = SelectBuilder.get()
+                                .linkto(CISales.ProductionOrderPosition.ProductionOrderLink);
+                final SelectBuilder selInst = new SelectBuilder(selProdOrd).instance();
+                final SelectBuilder selName = new SelectBuilder(selProdOrd).attribute(CISales.ProductionOrder.Name);
+                final SelectBuilder selNote = new SelectBuilder(selProdOrd).attribute(CISales.ProductionOrder.Note);
+                print.addSelect(selInst, selName, selNote);
                 print.execute();
                 ret.append(getSetFieldValue(0, CIFormFabrication.Fabrication_ProcessForm.productionOrder.name,
                                 print.<Instance>getSelect(selInst).getOid(),
-                                print.<String>getSelect(selName)));
+                                print.<String>getSelect(selName)))
+                    .append(getSetFieldValue(0, CIFormFabrication.Fabrication_ProcessForm.note.name,
+                                                print.<String>getSelect(selNote)));
             }
         }
         return ret;

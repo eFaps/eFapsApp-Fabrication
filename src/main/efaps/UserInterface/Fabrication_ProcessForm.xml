@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
 
-  Copyright 2003 - 2014 The eFaps Team
+  Copyright 2003 - 2016 The eFaps Team
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -14,17 +15,11 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  Author:          The eFaps Team
-  Revision:        $Rev$
-  Last Changed:    $Date$
-  Last Changed By: $Author$
-
 -->
 <ui-form xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
     <uuid>1ae56d52-3130-4812-bd90-731f2f282e03</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
-    <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
         <name>Fabrication_ProcessForm</name>
@@ -59,16 +54,17 @@
             <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
             <trigger program="org.efaps.esjp.sales.document.ProductionOrder"
                      method="autoComplete4Doc"
-                     name="Fabrication_ProcessForm/productionOrder.UI_FIELD_AUTOCOMPLETE"
+                     name="Fabrication_ProcessForm.productionOrder.UI_FIELD_AUTOCOMPLETE"
                      event="UI_FIELD_AUTOCOMPLETE">
                 <property name="Type">Sales_ProductionOrder</property>
                 <property name="StatusGroup">Sales_ProductionOrderStatus</property>
                 <property name="Status">Open</property>
             </trigger>
-            <trigger program="org.efaps.esjp.sales.document.ProductionOrder"
-                     method="updateFields4Document"
-                     name="Fabrication_ProcessForm/productionOrder.UI_FIELD_UPDATE"
-                     event="UI_FIELD_UPDATE" />
+            <trigger program="org.efaps.esjp.fabrication.Process"
+                     method="updateFields4ProductionOrder"
+                     name="Fabrication_ProcessForm.productionOrder.UI_FIELD_UPDATE"
+                     event="UI_FIELD_UPDATE" >
+            </trigger>
         </field>
         <field name="description">
             <property name="Attribute">Description</property>

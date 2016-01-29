@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2015 The eFaps Team
+ * Copyright 2003 - 2016 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Revision:        $Rev$
- * Last Changed:    $Date$
- * Last Changed By: $Author$
  */
 
 package org.efaps.esjp.fabrication.listener;
@@ -346,8 +343,8 @@ public abstract class OnCreateDocument_Base
         multi.addAttribute(CISales.ProductionOrderPosition.ProductDesc, CISales.ProductionOrderPosition.Quantity);
         multi.execute();
         while (multi.next()) {
-            noteBldr.append(multi.getAttribute(CISales.ProductionOrderPosition.Quantity))
-                .append(" ").append(multi.getAttribute(CISales.ProductionOrderPosition.ProductDesc));
+            noteBldr.append(multi.<BigDecimal>getAttribute(CISales.ProductionOrderPosition.Quantity))
+                .append(" ").append(multi.<String>getAttribute(CISales.ProductionOrderPosition.ProductDesc));
         }
         js.append(getSetFieldValue(0, CIFormSales.Sales_UsageReportForm.note.name, noteBldr.toString()));
 
@@ -357,7 +354,8 @@ public abstract class OnCreateDocument_Base
             print.addAttribute(CIFabrication.ProcessAbstract.Name, CIFabrication.ProcessAbstract.Date);
             print.execute();
             final String processName = print.getAttribute(CIFabrication.Process.Name);
-            final StringBuilder bldr = new StringBuilder().append(print.getAttribute(CIFabrication.ProcessAbstract.Name))
+            final StringBuilder bldr = new StringBuilder()
+                            .append(print.<String>getAttribute(CIFabrication.ProcessAbstract.Name))
                             .append(" - ").append(print.<DateTime>getAttribute(CIFabrication.ProcessAbstract.Date)
                                         .toString("dd/MM/yyyy", Context.getThreadContext().getLocale()));
 

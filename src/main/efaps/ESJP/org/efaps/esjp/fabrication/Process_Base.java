@@ -357,7 +357,8 @@ public abstract class Process_Base
         print.addAttribute(CIFabrication.ProcessAbstract.Name, CIFabrication.ProcessAbstract.Date);
         print.execute();
 
-        final StringBuilder bldr = new StringBuilder().append(print.getAttribute(CIFabrication.ProcessAbstract.Name))
+        final StringBuilder bldr = new StringBuilder()
+                        .append(print.<String>getAttribute(CIFabrication.ProcessAbstract.Name))
                         .append(" - ").append(print.<DateTime>getAttribute(CIFabrication.ProcessAbstract.Date)
                                         .toString("dd/MM/yyyy", Context.getThreadContext().getLocale()));
 

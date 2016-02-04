@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
 
- Copyright 2003 - 2015 The eFaps Team
+ Copyright 2003 - 2016 The eFaps Team
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,14 +15,11 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
- Author:          The eFaps Team
-
 -->
 <ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
     <uuid>9bfb29f6-5081-41c6-9887-3b2faf894511</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
-    <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
         <name>Fabrication_ProcessTree_ProcessReport_Menu_CreateProductionCosting</name>
@@ -48,7 +46,7 @@
                 name="Fabrication_ProcessTree_ProcessReport_Menu_CreateProductionCosting.UI_ACCESSCHECK.1"
                 event="UI_ACCESSCHECK">
                 <property name="SystemConfig">Sales-Configuration</property>
-                <property name="Attribute">org.efaps.sales.ActivateCosting</property>
+                <property name="Attribute">org.efaps.sales.Costing.Activate</property>
             </trigger>
             <trigger event="UI_ACCESSCHECK" method="check4Status"
                 index="2"

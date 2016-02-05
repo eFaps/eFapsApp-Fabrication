@@ -624,10 +624,7 @@ public abstract class ProcessReport_Base
         {
             for (final DataBean parentBean : this.paraMap.values()) {
                 for (final DataBean bomBean : this.dataMap.values()) {
-                    if (bomBean.getParentProdInst() != null
-                                    && bomBean.getParentProdInst().equals(parentBean.getProdInst())) {
-                        parentBean.addCost(bomBean.getUsageCost());
-                    }
+                    parentBean.addCost(bomBean.getUsageCost());
                 }
             }
             return this;

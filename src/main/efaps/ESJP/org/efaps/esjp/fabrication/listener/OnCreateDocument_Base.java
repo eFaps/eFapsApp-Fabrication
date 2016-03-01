@@ -125,13 +125,19 @@ public abstract class OnCreateDocument_Base
         final Instance inst = _parameter.getInstance();
         if (inst != null && inst.isValid() && inst.getType().isKindOf(CIFabrication.ProcessAbstract)) {
             final PrintQuery print = new PrintQuery(inst);
-            print.addAttribute(CIFabrication.ProcessAbstract.Name);
+            print.addAttribute(CIFabrication.ProcessAbstract.Name, CIFabrication.ProcessAbstract.Date);
             print.executeWithoutAccessCheck();
 
             final String name = print.<String>getAttribute(CIFabrication.ProcessAbstract.Name);
+            final StringBuilder bldr = new StringBuilder()
+                            .append(name).append(" - ")
+                            .append(print.<DateTime>getAttribute(CIFabrication.ProcessAbstract.Date)
+                                            .toString("dd/MM/yyyy", Context.getThreadContext().getLocale()));
 
             js.append(getSetFieldValue(0, CIFormSales.Sales_ProductionCostingForm.fabricationProcess.name,
-                            inst.getOid(), name));
+                            inst.getOid(), name))
+                .append(getSetFieldValue(0, CIFormSales.Sales_ProductionCostingForm.fabricationProcessData.name,
+                            bldr.toString()));
 
             final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
 
@@ -169,7 +175,8 @@ public abstract class OnCreateDocument_Base
                         final BigDecimal quant = (BigDecimal) qtyFrmt.parse((String) map
                                         .get(CITableSales.Sales_ProductionCostingPositionTable.quantity.name));
                         map.put(CITableSales.Sales_ProductionCostingPositionTable.quantity.name, qtyFrmt.format(multi
-                                       .<BigDecimal>getAttribute(CISales.ProductionReportPosition.Quantity).add(quant)));
+                                       .<BigDecimal>getAttribute(CISales.ProductionReportPosition.Quantity)
+                                       .add(quant)));
                     } catch (final ParseException e) {
 
                     }
@@ -212,7 +219,8 @@ public abstract class OnCreateDocument_Base
             noEscape.add("uoM");
             final StringBuilder onComplete = new StringBuilder();
             onComplete.append(getSetFieldReadOnlyScript(_parameter,
-                            CIFormSales.Sales_ProductionCostingForm.fabricationProcess.name));
+                            CIFormSales.Sales_ProductionCostingForm.fabricationProcess.name))
+                        .append(InterfaceUtils.wrappInScriptTag(_parameter, "executeCalculator();\n", false, 2000));
             js.append(getTableRemoveScript(_parameter, "positionTable", false, false))
                             .append(getTableAddNewRowsScript(_parameter, "positionTable", valueMap.values(),
                                             onComplete, false, false, noEscape));
@@ -333,10 +341,10 @@ public abstract class OnCreateDocument_Base
         final Map<Instance, BOMBean> ins2map = new Process().getInstance2BOMMap(_parameter);
 
         final StringBuilder noteBldr = new StringBuilder();
-        final QueryBuilder atrtQueryBldr= new QueryBuilder(CIFabrication.Process2ProductionOrder);
+        final QueryBuilder atrtQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionOrder);
         atrtQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionOrder.FromLink, _parameter.getInstance());
 
-        final QueryBuilder queryBldr= new QueryBuilder(CISales.ProductionOrderPosition);
+        final QueryBuilder queryBldr = new QueryBuilder(CISales.ProductionOrderPosition);
         queryBldr.addWhereAttrInQuery(CISales.ProductionOrderPosition.ProductionOrderLink,
                         atrtQueryBldr.getAttributeQuery(CIFabrication.Process2ProductionOrder.ToLink));
         final MultiPrintQuery multi = queryBldr.getPrint();
@@ -376,7 +384,8 @@ public abstract class OnCreateDocument_Base
                             .setProdDescr(mat.getMatDescription());
             if (Products.ACTIVATEINDIVIDUAL.get() && Fabrication.USAGERPTSTOR4IND.get() != null
                             && Fabrication.USAGERPTSTOR4IND.get().isValid()) {
-                final PrintQuery print = new CachedPrintQuery(origBean.getProdInstance(), Product_Base.CACHEKEY4PRODUCT);
+                final PrintQuery print = new CachedPrintQuery(origBean.getProdInstance(),
+                                Product_Base.CACHEKEY4PRODUCT);
                 print.addAttribute(CIProducts.ProductAbstract.Individual);
                 print.execute();
                 final ProductIndividual indivual = print.<ProductIndividual>getAttribute(
@@ -422,6 +431,9 @@ public abstract class OnCreateDocument_Base
     }
 
 
+    /**
+     * The Class UsageReportWrapper.
+     */
     public class UsageReportWrapper
         extends UsageReport
     {

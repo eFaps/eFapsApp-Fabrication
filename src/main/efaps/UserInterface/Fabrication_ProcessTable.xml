@@ -54,7 +54,7 @@
         </field>
         <field name="summary">
             <property name="Label">Fabrication_ProcessTable.summary.Label</property>
-            <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
+            <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
             <trigger program="org.efaps.esjp.fabrication.Process"
                 method="getSummaryFieldValue"
                 name="Fabrication_ProcessTable.summary.UI_FIELD_VALUE"

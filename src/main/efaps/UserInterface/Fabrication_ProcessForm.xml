@@ -51,7 +51,7 @@
             <property name="Label">Sales_ProductionOrder.Label</property>
             <property name="ModeCreate">EDITABLE</property>
             <property name="Required">true</property>
-            <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
+            <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
             <trigger program="org.efaps.esjp.sales.document.ProductionOrder"
                      method="autoComplete4Doc"
                      name="Fabrication_ProcessForm.productionOrder.UI_FIELD_AUTOCOMPLETE"

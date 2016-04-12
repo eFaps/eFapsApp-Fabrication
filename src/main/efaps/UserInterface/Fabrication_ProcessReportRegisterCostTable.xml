@@ -33,7 +33,7 @@
             <property name="ModeCreate">HIDDEN</property>
         </field>
         <field name="productDesc">
-            <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
+            <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
             <property name="Label">Products_ProductCost/ProductLink.Label</property>
             <property name="ModeCreate">READONLY</property>
         </field>

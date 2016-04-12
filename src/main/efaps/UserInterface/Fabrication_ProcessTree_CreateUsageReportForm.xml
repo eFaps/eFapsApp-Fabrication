@@ -34,7 +34,7 @@
              <property name="ModeEdit">NONE</property>
              <property name="Required">true</property>
              <property name="Label">Fabrication_ProcessTree_CreateUsageReportForm.storage.Label</property>
-             <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
+             <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
              <trigger program="org.efaps.esjp.fabrication.Process"
                 method="autoComplete4Storage"
                 name="Sales_DeliveryNoteForm.storage.UI_FIELD_AUTOCOMPLETE"

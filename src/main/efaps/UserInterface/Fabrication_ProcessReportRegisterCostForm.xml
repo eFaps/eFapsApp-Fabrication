@@ -30,7 +30,7 @@
         <name>Fabrication_ProcessReportRegisterCostForm</name>
         <field name="jsLinkField">
             <property name="ModeCreate">HIDDEN</property>
-            <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
+            <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
             <trigger program="org.efaps.esjp.common.uiform.Field" method="getJSLinkField"
                 name="Fabrication_ProcessReportRegisterCostForm.UI_FIELD_VALUE" event="UI_FIELD_VALUE">
                 <property name="link">/servlet/static/org.efaps.ui.wicket.behaviors.FieldUpdate.js?</property>
@@ -45,7 +45,7 @@
         </field>
         <field name="javaScript">
             <property name="ModeCreate">HIDDEN</property>
-            <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
+            <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
             <trigger program="org.efaps.esjp.fabrication.Process"
                 method="getJavaScript4CostUIValue"
                 name="Sales_InvoiceForm.javaScript.UI_Field_Value"

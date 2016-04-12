@@ -38,7 +38,7 @@
             <property name="HRef">TREE</property>
             <property name="Phrase">$&lt;linkto[ToLinkAbstract].type.label&gt; - $&lt;linkto[ToLinkAbstract].attribute[Name]&gt;</property>
             <property name="Label">ERP_DocumentAbstract/Name.Label</property>
-            <property name="ClassNameUI">org.efaps.admin.datamodel.ui.StringUI</property>
+            <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
         </field>
         <field name="date">
             <property name="Select">linkto[ToLinkAbstract].attribute[Date]</property>

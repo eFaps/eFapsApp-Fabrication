@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2015 The eFaps Team
+ * Copyright 2003 - 2016 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.efaps.util.cache.CacheReloadException;
  * @author The eFaps Team
  */
 @EFapsUUID("f69676f4-e795-4f30-8cf5-c746df81bed0")
-@EFapsApplication("eFapsApp-Sales")
+@EFapsApplication("eFapsApp-Fabrication")
 @EFapsSystemConfiguration("660188ee-c160-44a1-879b-81595594bfa6")
 public final class Fabrication
 {

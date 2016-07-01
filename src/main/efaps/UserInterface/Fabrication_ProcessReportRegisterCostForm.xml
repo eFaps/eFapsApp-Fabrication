@@ -39,7 +39,7 @@
         </field>
         <field name="javaScript">
             <property name="ModeCreate">HIDDEN</property>
-            <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
+            <property name="UIType">SNIPPLET</property>
             <trigger program="org.efaps.esjp.fabrication.Process"
                 method="getJavaScript4CostUIValue"
                 name="Sales_InvoiceForm.javaScript.UI_Field_Value"

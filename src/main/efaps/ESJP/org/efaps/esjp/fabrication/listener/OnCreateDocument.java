@@ -21,8 +21,8 @@
 
 package org.efaps.esjp.fabrication.listener;
 
+import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsListener;
-import org.efaps.admin.program.esjp.EFapsRevision;
 import org.efaps.admin.program.esjp.EFapsUUID;
 
 
@@ -35,7 +35,7 @@ import org.efaps.admin.program.esjp.EFapsUUID;
  * @version $Id$
  */
 @EFapsUUID("157b6153-9438-4026-a3e9-5bd1c564b69e")
-@EFapsRevision("$Rev$")
+@EFapsApplication("eFapsApp-Fabrication")
 @EFapsListener
 public class OnCreateDocument
     extends OnCreateDocument_Base

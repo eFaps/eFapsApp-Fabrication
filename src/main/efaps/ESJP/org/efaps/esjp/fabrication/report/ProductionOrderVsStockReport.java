@@ -20,7 +20,7 @@
 
 package org.efaps.esjp.fabrication.report;
 
-import org.efaps.admin.program.esjp.EFapsRevision;
+import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
 
 /**
@@ -32,7 +32,7 @@ import org.efaps.admin.program.esjp.EFapsUUID;
  * @version $Id$
  */
 @EFapsUUID("9f555d8b-47fe-4202-859e-41b97389e047")
-@EFapsRevision("$Rev$")
+@EFapsApplication("eFapsApp-Fabrication")
 public class ProductionOrderVsStockReport
     extends ProductionOrderVsStockReport_Base
 {

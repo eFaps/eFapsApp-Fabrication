@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
 
- Copyright 2003 - 2014 The eFaps Team
+ Copyright 2003 - 2016 The eFaps Team
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,26 +15,20 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
- Author:          The eFaps Team
- Revision:        $Rev$
- Last Changed:    $Date$
- Last Changed By: $Author$
-
 -->
 <ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
     <uuid>5a1b9688-1e91-47d1-bba7-48ab626cd227</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
-    <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
         <name>Fabrication_ProcessTree_ProcessReport_Menu_CreateProductionReport</name>
         <target>
             <form>Sales_ProductionReportForm</form>
-         <execute method="create" program="org.efaps.esjp.sales.document.ProductionReport">
+            <execute method="create" program="org.efaps.esjp.sales.document.ProductionReport">
                 <property name="PositionType">Sales_ProductionReportPosition</property>
                 <property name="StatusGroup">Sales_ProductionReportStatus</property>
-                <property name="Status">Open</property>
+                <property name="Status">Closed</property>
                 <property name="UseNumberGenerator4Name">true</property>
                 <!-- Fabrication_Process2ProductionReport -->
                 <property name="ConnectType">59e72720-04c5-4443-add1-96c2ae97017a</property>

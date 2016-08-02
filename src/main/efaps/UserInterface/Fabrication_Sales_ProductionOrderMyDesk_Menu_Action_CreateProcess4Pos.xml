@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
- Copyright 2003 - 2014 The eFaps Team
+ Copyright 2003 - 2016 The eFaps Team
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,17 +14,11 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
- Author:          The eFaps Team
- Revision:        $Rev$
- Last Changed:    $Date$
- Last Changed By: $Author$
-
 -->
 <ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
     <uuid>40b4940f-d28b-416c-8461-12ea5ea74ba3</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
-    <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
         <name>Fabrication_Sales_ProductionOrderMyDesk_Menu_Action_CreateProcess4Pos</name>
@@ -61,6 +55,9 @@
                 <property name="Attribute">org.efaps.fabrication.ProductionOrder.ShowDetail</property>
             </trigger>
         </target>
+        <parents>
+            <parent>Sales_ProductionOrderMyDesk_Menu_Action</parent>
+        </parents>
         <property name="Target">modal</property>
         <property name="TargetCreateType">Fabrication_Process</property>
         <property name="TargetMode">create</property>

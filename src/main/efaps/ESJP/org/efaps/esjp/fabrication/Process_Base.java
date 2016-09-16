@@ -130,7 +130,7 @@ public abstract class Process_Base
 
         final Collection<Map<String, Object>> maplist = new ArrayList<>();
         final ProcessReport report = new ProcessReport();
-        final ValuesBean values = report.getValues(_parameter);
+        final ValuesBean values = report.getValues(_parameter, null);
 
         values.calculateCost(_parameter);
         for (final DataBean parentBean : values.getParaMap().values()) {
@@ -313,8 +313,8 @@ public abstract class Process_Base
         throws EFapsException
     {
         final String input = (String) _parameter.get(ParameterValues.OTHERS);
-        final List<Map<String, String>> list = new ArrayList<Map<String, String>>();
-        final Map<String, Map<String, String>> orderMap = new TreeMap<String, Map<String, String>>();
+        final List<Map<String, String>> list = new ArrayList<>();
+        final Map<String, Map<String, String>> orderMap = new TreeMap<>();
 
         final String key = containsProperty(_parameter, "Key") ? getProperty(_parameter, "Key") : "OID";
 
@@ -327,7 +327,7 @@ public abstract class Process_Base
         multi.execute();
         while (multi.next()) {
             final String name = multi.<String>getAttribute(CIFabrication.ProcessAbstract.Name);
-            final Map<String, String> map = new HashMap<String, String>();
+            final Map<String, String> map = new HashMap<>();
             map.put(EFapsKey.AUTOCOMPLETE_KEY.getKey(), multi.getAttribute(key).toString());
             map.put(EFapsKey.AUTOCOMPLETE_VALUE.getKey(), name);
             map.put(EFapsKey.AUTOCOMPLETE_CHOICE.getKey(), name);
@@ -348,8 +348,8 @@ public abstract class Process_Base
         throws EFapsException
     {
         final Return ret = new Return();
-        final List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-        final Map<String, Object> map = new HashMap<String, Object>();
+        final List<Map<String, Object>> list = new ArrayList<>();
+        final Map<String, Object> map = new HashMap<>();
         final Instance instance = Instance.get(_parameter.getParameterValue("fabricationProcess"));
         final String projDataField = getProperty(_parameter, "Process_DataField", "fabricationProcessData");
 
@@ -471,7 +471,7 @@ public abstract class Process_Base
         throws EFapsException
     {
         final Return ret = new Return();
-        final List<IWarning> warnings = new ArrayList<IWarning>();
+        final List<IWarning> warnings = new ArrayList<>();
         if (Fabrication.PROCESSONEPRODUCT.get()) {
             final List<Instance> prodOrderInsts = new ArrayList<>();
             final String[] oids = _parameter.getParameterValues("selectedRow");

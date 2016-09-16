@@ -18,6 +18,7 @@
 package org.efaps.esjp.fabrication.listener;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.efaps.admin.datamodel.Dimension;
@@ -51,6 +53,8 @@ import org.efaps.esjp.common.listener.ITypedClass;
 import org.efaps.esjp.common.util.InterfaceUtils;
 import org.efaps.esjp.common.util.InterfaceUtils_Base.DojoLibs;
 import org.efaps.esjp.erp.CommonDocument;
+import org.efaps.esjp.erp.Currency;
+import org.efaps.esjp.erp.CurrencyInst;
 import org.efaps.esjp.erp.NumberFormatter;
 import org.efaps.esjp.erp.listener.IOnCreateDocument;
 import org.efaps.esjp.fabrication.Process;
@@ -100,7 +104,7 @@ public abstract class OnCreateDocument_Base
                                           final Parameter _parameter)
         throws EFapsException
     {
-        CharSequence ret = new String();
+        CharSequence ret = "";
         if (_typeClass != null) {
             if (CISales.UsageReport.equals(_typeClass.getCIType())) {
                 ret = getJavaScript4UsageReport(_parameter);
@@ -163,7 +167,8 @@ public abstract class OnCreateDocument_Base
             final Map<Instance, Map<String, Object>> valueMap = new HashMap<>();
 
             final ProcessReport report = new ProcessReport();
-            final ValuesBean values = report.getValues(_parameter);
+            final List<Instance> currencies = report.getCurrencies(_parameter);
+            final ValuesBean values = report.getValues(_parameter, currencies.get(0));
             values.calculateCost(_parameter);
             final Set<Instance> instances = new HashSet<>();
             while (multi.next()) {
@@ -181,7 +186,7 @@ public abstract class OnCreateDocument_Base
 
                     }
                 } else {
-                    final Map<String, Object> map = new HashMap<String, Object>();
+                    final Map<String, Object> map = new HashMap<>();
                     final UoM uom = Dimension.getUoM(multi.<Long>getAttribute(CISales.ProductionReportPosition.UoM));
 
                     final StringBuilder jsUoM = new StringBuilder("new Array('").append(uom.getId()).append("','").
@@ -204,18 +209,45 @@ public abstract class OnCreateDocument_Base
                     valueMap.put(prodInst, map);
                 }
             }
-            final StringBuilder derived = new StringBuilder();
-            derived.append("var pN = query('.eFapsContentDiv')[0];\n");
+            // more than one currency ==> force an artificial rate
+            if (currencies.size() > 1) {
+                final Instance rateCurrencyInst = currencies.get(0);
+                final ValuesBean baseValues = report.getValues(_parameter, Currency.getBaseCurrency());
+                baseValues.calculateCost(_parameter);
+                BigDecimal rate = BigDecimal.ZERO;
+                for (final Entry<Instance, DataBean> entry : values.getParaMap().entrySet()) {
+                    final DataBean baseBean = baseValues.getParaMap().get(entry.getKey());
+                    final DataBean rateBean = entry.getValue();
+                    rate = rate.add(rateBean.getCost().divide(baseBean.getCost(), RoundingMode.HALF_UP));
+                }
+                rate = rate.divide(new BigDecimal(values.getParaMap().size()), RoundingMode.HALF_UP);
+                if (CurrencyInst.get(rateCurrencyInst).isInvert()) {
+                    rate = BigDecimal.ONE.divide(rate, 8, RoundingMode.HALF_UP);
+                }
+                final DecimalFormat numFrmt = NumberFormatter.get().getFormatter();
+                js.append(getSetFieldValue(0, CIFormSales.Sales_ProductionCostingForm.rateCurrencyId.name,
+                                String.valueOf(rateCurrencyInst.getId())))
+                    .append(getSetFieldValue(0, CIFormSales.Sales_ProductionCostingForm.rateCurrencyData.name,
+                                    numFrmt.format(rate)))
+                    .append(getSetFieldValue(0, CIFormSales.Sales_ProductionCostingForm.rate.name,
+                                    numFrmt.format(rate)))
+                    .append(getSetFieldValue(0, CIFormSales.Sales_ProductionCostingForm.rate.name
+                                    + "_eFapsRateInverted",
+                                    String.valueOf(CurrencyInst.get(rateCurrencyInst).isInvert())));
+            }
+
+            final StringBuilder adjs = new StringBuilder();
+            adjs.append("var pN = query('.eFapsContentDiv')[0];\n");
             for (final Instance instance : instances) {
-                derived.append("domConstruct.create(\"input\", {")
+                adjs.append("domConstruct.create(\"input\", {")
                     .append(" value: \"").append(instance.getOid()).append("\", ")
                     .append(" name: \"derived\", ")
                     .append(" type: \"hidden\" ")
                     .append("}, pN);\n");
             }
-            js.append(InterfaceUtils.wrapInDojoRequire(_parameter, derived, DojoLibs.QUERY, DojoLibs.DOMCONSTRUCT));
+            js.append(InterfaceUtils.wrapInDojoRequire(_parameter, adjs, DojoLibs.QUERY, DojoLibs.DOMCONSTRUCT));
 
-            final Set<String> noEscape = new HashSet<String>();
+            final Set<String> noEscape = new HashSet<>();
             noEscape.add("uoM");
             final StringBuilder onComplete = new StringBuilder();
             onComplete.append(getSetFieldReadOnlyScript(_parameter,
@@ -227,7 +259,6 @@ public abstract class OnCreateDocument_Base
         }
         return js;
     }
-
 
     /**
      * @param _parameter Parameter as passed by the eFaps API
@@ -284,7 +315,7 @@ public abstract class OnCreateDocument_Base
 
                     }
                 } else {
-                    final Map<String, Object> map = new HashMap<String, Object>();
+                    final Map<String, Object> map = new HashMap<>();
                     final UoM uom = Dimension.getUoM(multi.<Long>getAttribute(CISales.ProductionOrderPosition.UoM));
 
                     final StringBuilder jsUoM = new StringBuilder("new Array('").append(uom.getId()).append("','").
@@ -312,7 +343,7 @@ public abstract class OnCreateDocument_Base
                     }
                 }
             }
-            final Set<String> noEscape = new HashSet<String>();
+            final Set<String> noEscape = new HashSet<>();
             noEscape.add("uoM");
 
             final StringBuilder readOnlyFields = getSetFieldReadOnlyScript(_parameter,
@@ -415,7 +446,7 @@ public abstract class OnCreateDocument_Base
             }
         });
 
-        final Set<String> noEscape = new HashSet<String>();
+        final Set<String> noEscape = new HashSet<>();
         noEscape.add("uoM");
 
         js.append(getTableRemoveScript(_parameter, "positionTable", false, false))

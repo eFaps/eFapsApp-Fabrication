@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.efaps.admin.datamodel.Dimension;
 import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.datamodel.Status;
@@ -49,10 +51,14 @@ import org.efaps.esjp.ci.CIFabrication;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.common.AbstractCommon;
+import org.efaps.esjp.common.file.FileUtil;
 import org.efaps.esjp.common.jasperreport.AbstractDynamicReport;
+import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.erp.Currency;
+import org.efaps.esjp.erp.CurrencyInst;
 import org.efaps.esjp.fabrication.util.Fabrication;
 import org.efaps.esjp.products.Cost;
+import org.efaps.esjp.sales.util.Sales;
 import org.efaps.ui.wicket.models.EmbeddedLink;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
@@ -88,9 +94,6 @@ public abstract class ProcessReport_Base
      */
     private static final Logger LOG = LoggerFactory.getLogger(ProcessReport.class);
 
-    /** The currency instance. */
-    private Instance currencyInstance;
-
     /**
      * @param _parameter Parameter as passed by the eFasp API
      * @return Return containing html snipplet
@@ -100,8 +103,11 @@ public abstract class ProcessReport_Base
         throws EFapsException
     {
         final Return ret = new Return();
-        final AbstractDynamicReport dyRp = getReport(_parameter);
-        final String html = dyRp.getHtmlSnipplet(_parameter);
+        final StringBuilder html = new StringBuilder();
+        for (final Instance curInst : getCurrencies(_parameter)) {
+            final AbstractDynamicReport dyRp = getReport(_parameter, curInst);
+            html.append(dyRp.getHtmlSnipplet(_parameter));
+        }
         ret.put(ReturnValues.SNIPLETT, html);
         return ret;
     }
@@ -117,16 +123,51 @@ public abstract class ProcessReport_Base
         final Return ret = new Return();
         final Map<?, ?> props = (Map<?, ?>) _parameter.get(ParameterValues.PROPERTIES);
         final String mime = (String) props.get("Mime");
-        final AbstractDynamicReport dyRp = getReport(_parameter);
-        dyRp.setFileName(getDBProperty("FileName"));
-        File file = null;
-        if ("xls".equalsIgnoreCase(mime)) {
-            file = dyRp.getExcel(_parameter);
-        } else if ("pdf".equalsIgnoreCase(mime)) {
-            file = dyRp.getPDF(_parameter);
+        final List<File> files = new ArrayList<>();
+        final List<Instance> currencies = getCurrencies(_parameter);
+        for (final Instance curInst : currencies) {
+            final AbstractDynamicReport dyRp = getReport(_parameter, curInst);
+            dyRp.setFileName(currencies.size() > 1 ?  RandomStringUtils.randomAlphanumeric(4)
+                            : getDBProperty("FileName"));
+            if ("xls".equalsIgnoreCase(mime)) {
+                files.add(dyRp.getExcel(_parameter));
+            } else if ("pdf".equalsIgnoreCase(mime)) {
+                files.add(dyRp.getPDF(_parameter));
+            }
         }
-        ret.put(ReturnValues.VALUES, file);
+        if (CollectionUtils.isNotEmpty(files)) {
+            if (files.size() > 1) {
+                if ("xls".equalsIgnoreCase(mime)) {
+                    final File file = new FileUtil().combineXls(files, getDBProperty("FileName"), false);
+                    ret.put(ReturnValues.VALUES, file);
+                } else if ("pdf".equalsIgnoreCase(mime)) {
+                    final File file = new FileUtil().combinePdfs(files, getDBProperty("FileName"), false);
+                    ret.put(ReturnValues.VALUES, file);
+                }
+            } else {
+                ret.put(ReturnValues.VALUES, files.get(0));
+            }
+        }
         ret.put(ReturnValues.TRUE, true);
+        return ret;
+    }
+
+    /**
+     * Gets the currencies.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the currencies
+     * @throws EFapsException on error
+     */
+    public List<Instance> getCurrencies(final Parameter _parameter)
+        throws EFapsException
+    {
+        final List<Instance> ret = new ArrayList<>();
+        final Instance currInst = Fabrication.CURRENCY4PROCESSREPORT.get();
+        if (InstanceUtils.isValid(currInst) && !Currency.getBaseCurrency().equals(currInst)) {
+            ret.add(currInst);
+        }
+        ret.add(Currency.getBaseCurrency());
         return ret;
     }
 
@@ -134,15 +175,14 @@ public abstract class ProcessReport_Base
      * Gets the values.
      *
      * @param _parameter Parameter as passed by the eFaps API
+     * @param _currencyInst the currency Instance
      * @return the values
      * @throws EFapsException on error
      */
-    public ValuesBean getValues(final Parameter _parameter)
+    public ValuesBean getValues(final Parameter _parameter,
+                                final Instance _currencyInst)
         throws EFapsException
     {
-        final Instance currInst = Fabrication.CURRENCY4PROCESSREPORT.get();
-        this.currencyInstance = currInst.isValid() ? currInst : Currency.getBaseCurrency();
-
         final ValuesBean ret = new ValuesBean();
 
         final Instance processInst = _parameter.getInstance();
@@ -194,12 +234,13 @@ public abstract class ProcessReport_Base
                 if (ret.getParaMap().containsKey(prodInst)) {
                     paraBean = ret.getParaMap().get(prodInst);
                 } else {
-                    paraBean = getDataBean(_parameter);
+                    paraBean = getDataBean(_parameter)
+                        .setCurrencyInst(_currencyInst)
+                        .setProdInstance(prodInst)
+                        .setProdName(multi.<String>getSelect(prodNameSel))
+                        .setProdDescription(multi.<String>getSelect(prodDescSel))
+                        .setProdDimension(Dimension.get(multi.<Long>getSelect(prodDimSel)));
                     ret.getParaMap().put(prodInst, paraBean);
-                    paraBean.setCurrencyInst(getCurrencyInstance()).setProdInstance(prodInst);
-                    paraBean.setProdName(multi.<String>getSelect(prodNameSel));
-                    paraBean.setProdDescription(multi.<String>getSelect(prodDescSel));
-                    paraBean.setProdDimension(Dimension.get(multi.<Long>getSelect(prodDimSel)));
                 }
                 if (docInst.getType().isKindOf(CISales.ProductionReport.getType())) {
                     paraBean.addFabrication(quantity);
@@ -224,17 +265,17 @@ public abstract class ProcessReport_Base
                     final DataBean bean;
                     final Instance matInst = bomMulti.getSelect(matInstSel);
                     if (ret.getDataMap().containsKey(matInst)) {
-                        bean = ret.getDataMap().get(matInst);
-                        bean.setParentProdInst(prodInst);
+                        bean = ret.getDataMap().get(matInst).setParentProdInst(prodInst);
                     } else {
                         bean = getDataBean(_parameter);
                         ret.getDataMap().put(matInst, bean);
-                        bean.setCurrencyInst(getCurrencyInstance()).setParentProdInst(prodInst);
-                        bean.setDate(date);
-                        bean.setProdInstance(matInst);
-                        bean.setProdName(bomMulti.<String>getSelect(matNameSel));
-                        bean.setProdDescription(bomMulti.<String>getSelect(matDescSel));
-                        bean.setProdDimension(Dimension.get(bomMulti.<Long>getSelect(matDimSel)));
+                        bean.setCurrencyInst(_currencyInst)
+                            .setParentProdInst(prodInst)
+                            .setDate(date)
+                            .setProdInstance(matInst)
+                            .setProdName(bomMulti.<String>getSelect(matNameSel))
+                            .setProdDescription(bomMulti.<String>getSelect(matDescSel))
+                            .setProdDimension(Dimension.get(bomMulti.<Long>getSelect(matDimSel)));
                     }
 
                     final UoM uom = Dimension.getUoM(bomMulti.<Long>getAttribute(CIProducts.ProductionBOM.UoM));
@@ -253,14 +294,14 @@ public abstract class ProcessReport_Base
                 if (ret.getDataMap().containsKey(prodInst)) {
                     bean = ret.getDataMap().get(prodInst);
                 } else {
-                    bean = getDataBean(_parameter);
+                    bean = getDataBean(_parameter)
+                        .setCurrencyInst(_currencyInst)
+                        .setDate(date)
+                        .setProdInstance(prodInst)
+                        .setProdName(multi.<String>getSelect(prodNameSel))
+                        .setProdDescription(multi.<String>getSelect(prodDescSel))
+                        .setProdDimension(Dimension.get(multi.<Long>getSelect(prodDimSel)));
                     ret.getDataMap().put(prodInst, bean);
-                    bean.setCurrencyInst(getCurrencyInstance());
-                    bean.setDate(date);
-                    bean.setProdInstance(prodInst);
-                    bean.setProdName(multi.<String>getSelect(prodNameSel));
-                    bean.setProdDescription(multi.<String>getSelect(prodDescSel));
-                    bean.setProdDimension(Dimension.get(multi.<Long>getSelect(prodDimSel)));
                 }
                 bean.addUsage(quantity);
             }
@@ -269,24 +310,18 @@ public abstract class ProcessReport_Base
     }
 
     /**
-     * Gets the currency instance.
+     * Gets the report.
      *
-     * @return the currency instance
-     */
-    public Instance getCurrencyInstance()
-    {
-        return this.currencyInstance;
-    }
-
-    /**
      * @param _parameter Parameter as passed by the eFasp API
+     * @param _currencyInst the currency inst
      * @return the report class
      * @throws EFapsException on error
      */
-    protected AbstractDynamicReport getReport(final Parameter _parameter)
+    protected AbstractDynamicReport getReport(final Parameter _parameter,
+                                              final Instance _currencyInst)
         throws EFapsException
     {
-        return new DynProcessReport(this);
+        return new DynProcessReport(this, _currencyInst);
     }
 
     /**
@@ -322,16 +357,22 @@ public abstract class ProcessReport_Base
         /** The reportContainer. */
         private final ProcessReport_Base reportContainer;
 
+        /** The currency instance. */
+        private final Instance currencyInstance;
+
         /**
          * Instantiates a new dyn process report.
          *
          * @param _reportContainer the report
+         * @param _currencyInst the currency inst
          * @throws EFapsException on error
          */
-        public DynProcessReport(final ProcessReport_Base _reportContainer)
+        public DynProcessReport(final ProcessReport_Base _reportContainer,
+                                final Instance _currencyInst)
             throws EFapsException
         {
             this.reportContainer = _reportContainer;
+            this.currencyInstance = _currencyInst;
         }
 
         /**
@@ -348,7 +389,7 @@ public abstract class ProcessReport_Base
         protected JRDataSource createDataSource(final Parameter _parameter)
             throws EFapsException
         {
-            final ValuesBean values = getReportContainer().getValues(_parameter);
+            final ValuesBean values = getReportContainer().getValues(_parameter, getCurrencyInstance());
 
             final List<DataBean> datasource = new ArrayList<>(values.getDataMap().values());
             Collections.sort(datasource, new Comparator<DataBean>()
@@ -395,9 +436,15 @@ public abstract class ProcessReport_Base
                                     .append(bean.getProdName()).append(" ").append(bean.getProdDescription());
                 }
             }
+
+            final String currencyTitle = getReportContainer().getFormatedDBProperty("TitleCurrency",
+                            CurrencyInst.get(getCurrencyInstance()).getName());
+
             final StyleBuilder style = DynamicReports.stl.style().setBold(true).setFontSize(14);
             getReport().addTitle(
-                            DynamicReports.cmp.verticalList(DynamicReports.cmp.text(order.toString()).setStyle(style),
+                            DynamicReports.cmp.verticalList(
+                                            DynamicReports.cmp.text(currencyTitle).setStyle(style),
+                                            DynamicReports.cmp.text(order.toString()).setStyle(style),
                                             DynamicReports.cmp.text(fabrication.toString()).setStyle(style)));
         }
 
@@ -419,6 +466,8 @@ public abstract class ProcessReport_Base
                 for (final DataBean parentBean : _values.getParaMap().values()) {
                     final StringBuilder bldr = new StringBuilder()
                                     .append(parentBean.getUnitCost())
+                                    .append(" ")
+                                    .append(CurrencyInst.get(getCurrencyInstance()).getSymbol())
                                     .append(" ").append(parentBean.getProdName()).append(" ")
                                     .append(parentBean.getProdDescription());
                     vl.add(DynamicReports.cmp.text(bldr.toString()).setStyle(style));
@@ -548,6 +597,16 @@ public abstract class ProcessReport_Base
                             || Context.getThreadContext().getPerson()
                                             .isAssigned(Role.get(UUID
                                                             .fromString("fe489cb2-94ec-442d-975f-36d0f4fbc589")));
+        }
+
+        /**
+         * Gets the currency instance.
+         *
+         * @return the currency instance
+         */
+        protected Instance getCurrencyInstance()
+        {
+            return this.currencyInstance;
         }
     }
 
@@ -696,7 +755,21 @@ public abstract class ProcessReport_Base
             throws EFapsException
         {
             if (!this.init) {
-                this.cost =  Cost.getCost4Currency(_parameter, getDate(), getProdInst(), getCurrencyInst());
+                boolean exec = true;
+                final List<String> altCosts = Sales.COSTINGALTINSTS.get();
+                if (CollectionUtils.isNotEmpty(altCosts)) {
+                    for (final String currencyOID : Sales.COSTINGALTINSTS.get()) {
+                        if (getCurrencyInst().equals(Instance.get(currencyOID))) {
+                            this.cost =  Cost.getAlternativeCost4Currency(_parameter, getDate(),
+                                            getCurrencyInst(), getProdInst(), getCurrencyInst());
+                            exec = false;
+                            break;
+                        }
+                    }
+                }
+                if (exec) {
+                    this.cost =  Cost.getCost4Currency(_parameter, getDate(), getProdInst(), getCurrencyInst());
+                }
                 this.init = true;
             }
         }

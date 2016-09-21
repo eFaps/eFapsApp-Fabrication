@@ -68,6 +68,7 @@ public abstract class OnDocProductTransactionReport_Base
             final Map<String, Object> filter = _dynReport.getFilteredReport().getFilterMap(_parameter);
             boolean hasInd = filter.containsKey("analyzeFabrication")
                             && BooleanUtils.isTrue((Boolean) filter.get("analyzeFabrication"));
+            final Set<Map<String, ?>> prevDup = new HashSet<>();
             while (hasInd) {
                 final Iterator<Map<String, ?>> iter = _values.iterator();
                 hasInd = false;
@@ -103,7 +104,11 @@ public abstract class OnDocProductTransactionReport_Base
                         }
                         if (prInsts.isEmpty()) {
                             hasInd = false;
-                            newValues.add(map);
+                            // prevent duplicated adding due to looping
+                            if (!prevDup.contains(map)) {
+                                prevDup.add(map);
+                                newValues.add(map);
+                            }
                         } else {
                             // get a factor for moved/produced
                             final BigDecimal factor = BigDecimal.ZERO.compareTo(produced) == 0

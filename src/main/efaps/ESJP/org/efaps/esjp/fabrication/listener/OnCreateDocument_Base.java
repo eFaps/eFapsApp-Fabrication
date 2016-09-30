@@ -355,7 +355,8 @@ public abstract class OnCreateDocument_Base
                             .append(getTableAddNewRowsScript(_parameter, "positionTable", valueMap.values(),
                                             readOnlyFields, false, false, noEscape));
         }
-        return js;
+        return Products.ACTIVATEINDIVIDUAL.get() ? InterfaceUtils.wrapInDojoRequire(_parameter, js,
+                        DojoLibs.QUERY, DojoLibs.DOM, DojoLibs.DOMCONSTRUCT, DojoLibs.NUMBER) : js;
     }
 
     /**

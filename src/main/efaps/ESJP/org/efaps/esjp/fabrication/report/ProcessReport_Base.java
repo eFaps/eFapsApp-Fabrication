@@ -756,19 +756,28 @@ public abstract class ProcessReport_Base
         {
             if (!this.init) {
                 boolean exec = true;
+                final DateTime requestDate =  _parameter.getParameterValue("requestDate") == null
+                                ? null : new DateTime(_parameter.getParameterValue("requestDate"));
                 final List<String> altCosts = Sales.COSTINGALTINSTS.get();
                 if (CollectionUtils.isNotEmpty(altCosts)) {
                     for (final String currencyOID : Sales.COSTINGALTINSTS.get()) {
                         if (getCurrencyInst().equals(Instance.get(currencyOID))) {
-                            this.cost =  Cost.getAlternativeCost4Currency(_parameter, getDate(),
-                                            getCurrencyInst(), getProdInst(), getCurrencyInst());
+                            this.cost = requestDate == null
+                                            ? Cost.getAlternativeCost4Currency(_parameter, getDate(),
+                                                            getCurrencyInst(), getProdInst(), getCurrencyInst())
+                                            : Cost.getHistoricAlternativeCost4Currency(_parameter, getDate(),
+                                                            requestDate, getCurrencyInst(), getProdInst(),
+                                                            getCurrencyInst());
                             exec = false;
                             break;
                         }
                     }
                 }
                 if (exec) {
-                    this.cost =  Cost.getCost4Currency(_parameter, getDate(), getProdInst(), getCurrencyInst());
+                    this.cost = requestDate == null
+                                    ? Cost.getCost4Currency(_parameter, getDate(), getProdInst(), getCurrencyInst())
+                                    : Cost.getHistoricCost4Currency(_parameter, getDate(), requestDate,
+                                                    getProdInst(), getCurrencyInst());
                 }
                 this.init = true;
             }

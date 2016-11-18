@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+
+ Copyright 2003 - 2016 The eFaps Team
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+<ui-command xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
+    <uuid>ffbd819b-69e0-4a98-9d66-531e1f7dcb51</uuid>
+    <file-application>eFapsApp-Fabrication</file-application>
+    <definition>
+        <version-expression>(version==latest)</version-expression>
+        <name>Fabrication_ProcessTree_Menu_Action_CreateProductionCosting</name>
+        <target>
+            <execute method="createProductionCosting" program="org.efaps.esjp.fabrication.Process">
+                <property name="PositionType">Sales_ProductionCostingPosition</property>
+                <property name="StatusGroup">Sales_ProductionCostingStatus</property>
+                <property name="Status">Open</property>
+                <property name="UseNumberGenerator4Name">true</property>
+                <!-- Fabrication_Process2ProductionCosting -->
+                <property name="ConnectType">22954d16-d4f3-48fd-953c-c181e6e6f1e7</property>
+                <property name="ConnectCurrentLink">ToLink</property>
+                <property name="ConnectForeignLink">FromLink</property>
+                <property name="ConnectForeignField">fabricationProcess</property>
+            </execute>
+            <trigger event="UI_ACCESSCHECK" index="1" method="configCheck"
+                name="Fabrication_ProcessTree_ProcessReport_Menu_CreateProductionCosting.UI_ACCESSCHECK.1"
+                program="org.efaps.esjp.admin.access.AccessCheck4UI">
+                <property name="SystemConfig">Sales-Configuration</property>
+                <property name="Attribute">org.efaps.sales.Costing.Activate</property>
+            </trigger>
+            <trigger event="UI_ACCESSCHECK" index="2" method="check4Status"
+                name="Fabrication_ProcessTree_ProcessReport_Menu_CreateProductionCosting.UI_ACCESSCHECK"
+                program="org.efaps.esjp.admin.access.AccessCheck4UI">
+                <property name="Status">Open</property>
+            </trigger>
+        </target>
+        <property name="AskUser">true</property>
+        <property name="Submit">true</property>
+        <property name="SubmitSelectedRows">-1</property>
+    </definition>
+</ui-command>

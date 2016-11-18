@@ -218,7 +218,12 @@ public abstract class OnCreateDocument_Base
                 for (final Entry<Instance, DataBean> entry : values.getParaMap().entrySet()) {
                     final DataBean baseBean = baseValues.getParaMap().get(entry.getKey());
                     final DataBean rateBean = entry.getValue();
-                    rate = rate.add(rateBean.getCost().divide(baseBean.getCost(), RoundingMode.HALF_UP));
+                    if (baseBean.getCost().compareTo(BigDecimal.ZERO) > 0) {
+                        rate = rate.add(rateBean.getCost().divide(baseBean.getCost(), RoundingMode.HALF_UP));
+                    }
+                }
+                if (rate.compareTo(BigDecimal.ZERO) == 0) {
+                    rate = BigDecimal.ONE;
                 }
                 rate = rate.divide(new BigDecimal(values.getParaMap().size()), RoundingMode.HALF_UP);
                 if (CurrencyInst.get(rateCurrencyInst).isInvert()) {

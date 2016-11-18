@@ -18,16 +18,23 @@
 package org.efaps.esjp.fabrication;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.efaps.admin.datamodel.Dimension;
 import org.efaps.admin.datamodel.Dimension.UoM;
 import org.efaps.admin.datamodel.Status;
+import org.efaps.admin.datamodel.Type;
 import org.efaps.admin.dbproperty.DBProperties;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.event.Parameter.ParameterValues;
@@ -46,15 +53,22 @@ import org.efaps.db.SelectBuilder;
 import org.efaps.db.Update;
 import org.efaps.esjp.ci.CIFabrication;
 import org.efaps.esjp.ci.CIFormFabrication;
+import org.efaps.esjp.ci.CIFormSales;
 import org.efaps.esjp.ci.CIProducts;
 import org.efaps.esjp.ci.CISales;
 import org.efaps.esjp.ci.CITableFabrication;
+import org.efaps.esjp.ci.CITableSales;
+import org.efaps.esjp.common.parameter.ParameterUtil;
 import org.efaps.esjp.common.uiform.Create;
 import org.efaps.esjp.common.uisearch.Search;
 import org.efaps.esjp.common.util.InterfaceUtils;
+import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.erp.AbstractWarning;
 import org.efaps.esjp.erp.CommonDocument;
+import org.efaps.esjp.erp.Currency;
+import org.efaps.esjp.erp.CurrencyInst;
 import org.efaps.esjp.erp.IWarning;
+import org.efaps.esjp.erp.NumberFormatter;
 import org.efaps.esjp.erp.WarningUtil;
 import org.efaps.esjp.erp.listener.IOnCreateDocument;
 import org.efaps.esjp.fabrication.report.ProcessReport;
@@ -65,6 +79,7 @@ import org.efaps.esjp.fabrication.report.ProductionOrderReport_Base.ProductBean;
 import org.efaps.esjp.fabrication.util.Fabrication;
 import org.efaps.esjp.products.Storage;
 import org.efaps.esjp.products.Transaction_Base;
+import org.efaps.esjp.sales.document.ProductionCosting;
 import org.efaps.esjp.sales.document.UsageReport;
 import org.efaps.ui.wicket.util.EFapsKey;
 import org.efaps.util.EFapsException;
@@ -268,7 +283,7 @@ public abstract class Process_Base
         for (final ProductBean prodBean : dataMap.values()) {
             final List<BOMBean> bom = prodBean.getBom();
             for (final BOMBean bean : bom) {
-                BOMBean beanTmp;
+                final BOMBean beanTmp;
                 if (inst2bom.containsKey(bean.getMatInstance())) {
                     beanTmp = inst2bom.get(bean.getMatInstance());
                     beanTmp.setQuantity(beanTmp.getQuantity().add(bean.getQuantity()));
@@ -404,7 +419,7 @@ public abstract class Process_Base
         throws EFapsException
     {
         final Return ret = new Return();
-        Map<Instance, String> values;
+        final Map<Instance, String> values;
         if (Context.getThreadContext().containsRequestAttribute(Transaction_Base.REQUESTKEY)) {
             values = (Map<Instance, String>) Context.getThreadContext().getRequestAttribute(
                             Process.REQUESTKEY);
@@ -649,6 +664,157 @@ public abstract class Process_Base
         }
         return ret;
     }
+
+    /**
+     * Creates the production costing.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the return
+     * @throws EFapsException on error
+     */
+    public Return createProductionCosting(final Parameter _parameter)
+        throws EFapsException
+    {
+        return createProductionCosting(_parameter, _parameter.getInstance());
+    }
+
+    /**
+     * Creates the production costing.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @param _processInstance the process instance
+     * @return the return
+     * @throws EFapsException on error
+     */
+    protected Return createProductionCosting(final Parameter _parameter,
+                                             final Instance _processInstance)
+        throws EFapsException
+    {
+        Return ret = new Return();
+        if (InstanceUtils.isKindOf(_processInstance, CIFabrication.ProcessAbstract)) {
+            final Parameter parameter = ParameterUtil.clone(_parameter);
+            if (parameter.getParameterValue(CIFormSales.Sales_ProductionCostingForm.date.name) == null) {
+                ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.date.name,
+                               new DateTime().toString());
+            }
+            ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.fabricationProcess.name,
+                            _processInstance.getOid());
+
+            final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
+            final DecimalFormat numFrmt = NumberFormatter.get().getFormatter();
+            final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionReport);
+            attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionReport.FromLink, _processInstance);
+
+            final QueryBuilder queryBldr = new QueryBuilder(CISales.ProductionReportPosition);
+            queryBldr.addWhereAttrInQuery(CISales.ProductionReportPosition.DocumentAbstractLink, attrQueryBldr
+                            .getAttributeQuery(CIFabrication.Process2ProductionReport.ToLink));
+            final MultiPrintQuery multi = queryBldr.getPrint();
+            final SelectBuilder selDocInst = SelectBuilder.get().linkto(
+                            CISales.ProductionReportPosition.DocumentAbstractLink).instance();
+            final SelectBuilder selProd = SelectBuilder.get().linkto(CISales.ProductionReportPosition.Product);
+            final SelectBuilder selProdInst = new SelectBuilder(selProd).instance();
+            final SelectBuilder selProdIndividual = new SelectBuilder(selProd).attribute(
+                            CIProducts.ProductAbstract.Individual);
+            final SelectBuilder selProdDescr = new SelectBuilder(selProd).attribute(
+                            CIProducts.ProductAbstract.Description);
+            multi.addSelect(selDocInst, selProdInst, selProdDescr, selProdIndividual);
+            multi.addAttribute(CISales.ProductionReportPosition.UoM, CISales.ProductionReportPosition.Quantity);
+            multi.execute();
+            final Map<Instance, Map<String, String>> valueMap = new HashMap<>();
+
+            final ProcessReport report = new ProcessReport();
+            final List<Instance> currencies = report.getCurrencies(parameter);
+            final ValuesBean values = report.getValues(parameter, currencies.get(0));
+            values.calculateCost(parameter);
+            final Set<Instance> instances = new HashSet<>();
+            while (multi.next()) {
+                instances.add(multi.<Instance>getSelect(selDocInst));
+                final Instance prodInst = multi.getSelect(selProdInst);
+                if (valueMap.containsKey(prodInst)) {
+                    try {
+                        final Map<String, String> map = valueMap.get(prodInst);
+                        final BigDecimal quant = (BigDecimal) qtyFrmt.parse(map.get(
+                                        CITableSales.Sales_ProductionCostingPositionTable.quantity.name));
+                        map.put(CITableSales.Sales_ProductionCostingPositionTable.quantity.name, qtyFrmt.format(multi
+                                        .<BigDecimal>getAttribute(CISales.ProductionReportPosition.Quantity).add(
+                                                        quant)));
+                    } catch (final ParseException e) {
+
+                    }
+                } else {
+                    final Map<String, String> map = new HashMap<>();
+                    final UoM uom = Dimension.getUoM(multi.<Long>getAttribute(CISales.ProductionReportPosition.UoM));
+
+                    map.put(CITableSales.Sales_ProductionCostingPositionTable.quantity.name, qtyFrmt.format(multi
+                                    .<BigDecimal>getAttribute(CISales.ProductionOrderPosition.Quantity)));
+                    map.put(CITableSales.Sales_ProductionCostingPositionTable.product.name, multi.<Instance>getSelect(
+                                    selProdInst).getOid());
+                    map.put(CITableSales.Sales_ProductionCostingPositionTable.productDesc.name, multi.<String>getSelect(
+                                    selProdDescr));
+                    map.put(CITableSales.Sales_ProductionCostingPositionTable.uoM.name, String.valueOf(uom.getId()));
+
+                    for (final DataBean parentBean : values.getParaMap().values()) {
+                        if (parentBean.getProdInst().equals(prodInst)) {
+                            map.put(CITableSales.Sales_ProductionCostingPositionTable.netUnitPrice.name, numFrmt.format(
+                                            parentBean.getUnitCost()));
+                        }
+                    }
+                    valueMap.put(prodInst, map);
+                }
+            }
+
+            for (final Map<String, String> map : valueMap.values()) {
+                for (final Entry<String, String> entry : map.entrySet()) {
+                    ParameterUtil.addParameterValues(parameter, entry.getKey(), entry.getValue());
+                }
+            }
+
+            // more than one currency ==> force an artificial rate
+            if (currencies.size() > 1) {
+                final Instance rateCurrencyInst = currencies.get(0);
+                final ValuesBean baseValues = report.getValues(parameter, Currency.getBaseCurrency());
+                baseValues.calculateCost(parameter);
+                BigDecimal rate = BigDecimal.ZERO;
+                for (final Entry<Instance, DataBean> entry : values.getParaMap().entrySet()) {
+                    final DataBean baseBean = baseValues.getParaMap().get(entry.getKey());
+                    final DataBean rateBean = entry.getValue();
+                    if (baseBean.getCost().compareTo(BigDecimal.ZERO) > 0) {
+                        rate = rate.add(rateBean.getCost().divide(baseBean.getCost(), RoundingMode.HALF_UP));
+                    }
+                }
+                if (rate.compareTo(BigDecimal.ZERO) == 0) {
+                    rate = BigDecimal.ONE;
+                }
+                rate = rate.divide(new BigDecimal(values.getParaMap().size()), RoundingMode.HALF_UP);
+                if (CurrencyInst.get(rateCurrencyInst).isInvert()) {
+                    rate = BigDecimal.ONE.divide(rate, 8, RoundingMode.HALF_UP);
+                }
+                ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.rateCurrencyId.name,
+                                String.valueOf(rateCurrencyInst.getId()));
+
+                ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.rate.name, numFrmt
+                                .format(rate));
+                ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.rate.name
+                                + "_eFapsRateInverted", String.valueOf(CurrencyInst.get(rateCurrencyInst).isInvert()));
+            }
+
+            for (final Instance instance : instances) {
+                ParameterUtil.addParameterValues(parameter, "derived", instance.getOid());
+            }
+
+            ret = new ProductionCosting()
+            {
+                @Override
+                protected Type getType4DocCreate(final Parameter _parameter)
+                    throws EFapsException
+                {
+                    return CISales.ProductionCosting.getType();
+                }
+            }.create(parameter);
+        }
+        return ret;
+    }
+
 
     /**
      * Warning for amount greater zero.

@@ -769,48 +769,53 @@ public abstract class Process_Base
                 }
             }
 
-            // more than one currency ==> force an artificial rate
-            if (currencies.size() > 1) {
-                final Instance rateCurrencyInst = currencies.get(0);
-                final ValuesBean baseValues = report.getValues(parameter, Currency.getBaseCurrency());
-                baseValues.calculateCost(parameter);
-                BigDecimal rate = BigDecimal.ZERO;
-                for (final Entry<Instance, DataBean> entry : values.getParaMap().entrySet()) {
-                    final DataBean baseBean = baseValues.getParaMap().get(entry.getKey());
-                    final DataBean rateBean = entry.getValue();
-                    if (baseBean.getCost().compareTo(BigDecimal.ZERO) > 0) {
-                        rate = rate.add(rateBean.getCost().divide(baseBean.getCost(), RoundingMode.HALF_UP));
+            if (!values.getParaMap().isEmpty()) {
+                // more than one currency ==> force an artificial rate
+                if (currencies.size() > 1) {
+                    final Instance rateCurrencyInst = currencies.get(0);
+                    final ValuesBean baseValues = report.getValues(parameter, Currency.getBaseCurrency());
+                    baseValues.calculateCost(parameter);
+                    BigDecimal rate = BigDecimal.ZERO;
+                    for (final Entry<Instance, DataBean> entry : values.getParaMap().entrySet()) {
+                        final DataBean baseBean = baseValues.getParaMap().get(entry.getKey());
+                        final DataBean rateBean = entry.getValue();
+                        if (baseBean.getCost().compareTo(BigDecimal.ZERO) > 0) {
+                            rate = rate.add(rateBean.getCost().divide(baseBean.getCost(), RoundingMode.HALF_UP));
+                        }
                     }
-                }
-                if (rate.compareTo(BigDecimal.ZERO) == 0) {
-                    rate = BigDecimal.ONE;
-                }
-                rate = rate.divide(new BigDecimal(values.getParaMap().size()), RoundingMode.HALF_UP);
-                if (CurrencyInst.get(rateCurrencyInst).isInvert()) {
-                    rate = BigDecimal.ONE.divide(rate, 8, RoundingMode.HALF_UP);
-                }
-                ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.rateCurrencyId.name,
-                                String.valueOf(rateCurrencyInst.getId()));
+                    if (rate.compareTo(BigDecimal.ZERO) == 0) {
+                        rate = BigDecimal.ONE;
+                    }
+                    rate = rate.divide(new BigDecimal(values.getParaMap().size()), RoundingMode.HALF_UP);
+                    if (CurrencyInst.get(rateCurrencyInst).isInvert()) {
+                        rate = BigDecimal.ONE.divide(rate, 8, RoundingMode.HALF_UP);
+                    }
+                    ParameterUtil.setParameterValues(parameter,
+                                    CIFormSales.Sales_ProductionCostingForm.rateCurrencyId.name, String.valueOf(
+                                                    rateCurrencyInst.getId()));
 
-                ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.rate.name, numFrmt
-                                .format(rate));
-                ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.rate.name
-                                + "_eFapsRateInverted", String.valueOf(CurrencyInst.get(rateCurrencyInst).isInvert()));
-            }
+                    ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.rate.name,
+                                    numFrmt.format(rate));
+                    ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.rate.name
+                                    + "_eFapsRateInverted", String.valueOf(CurrencyInst.get(rateCurrencyInst)
+                                                    .isInvert()));
+                }
 
-            for (final Instance instance : instances) {
-                ParameterUtil.addParameterValues(parameter, "derived", instance.getOid());
-            }
+                for (final Instance instance : instances) {
+                    ParameterUtil.addParameterValues(parameter, "derived", instance.getOid());
+                }
 
-            ret = new ProductionCosting()
-            {
-                @Override
-                protected Type getType4DocCreate(final Parameter _parameter)
-                    throws EFapsException
+                ret = new ProductionCosting()
                 {
-                    return CISales.ProductionCosting.getType();
-                }
-            }.create(parameter);
+
+                    @Override
+                    protected Type getType4DocCreate(final Parameter _parameter)
+                        throws EFapsException
+                    {
+                        return CISales.ProductionCosting.getType();
+                    }
+                }.create(parameter);
+            }
         }
         return ret;
     }

@@ -61,6 +61,7 @@ import org.efaps.esjp.ci.CITableSales;
 import org.efaps.esjp.common.parameter.ParameterUtil;
 import org.efaps.esjp.common.uiform.Create;
 import org.efaps.esjp.common.uisearch.Search;
+import org.efaps.esjp.common.uitable.MultiPrint;
 import org.efaps.esjp.common.util.InterfaceUtils;
 import org.efaps.esjp.db.InstanceUtils;
 import org.efaps.esjp.erp.AbstractWarning;
@@ -820,6 +821,40 @@ public abstract class Process_Base
         return ret;
     }
 
+    /**
+     * Process without costing multi print.
+     *
+     * @param _parameter Parameter as passed by the eFaps API
+     * @return the return
+     * @throws EFapsException on error
+     */
+    public Return processWithoutCostingMultiPrint(final Parameter _parameter)
+        throws EFapsException
+    {
+        final MultiPrint multi = new MultiPrint()
+        {
+
+            @Override
+            protected void add2QueryBldr(final Parameter _parameter,
+                                         final QueryBuilder _queryBldr)
+                throws EFapsException
+            {
+                super.add2QueryBldr(_parameter, _queryBldr);
+
+                final QueryBuilder pcQueryBldr = new QueryBuilder(CISales.ProductionCosting);
+                pcQueryBldr.addWhereAttrNotEqValue(CISales.ProductionCosting.Status, Status.find(
+                                CISales.ProductionCostingStatus.Canceled));
+
+                final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionCosting);
+                attrQueryBldr.addWhereAttrInQuery(CIFabrication.Process2ProductionCosting.ToLink, pcQueryBldr
+                                .getAttributeQuery(CISales.ProductionCosting.ID));
+
+                _queryBldr.addWhereAttrNotInQuery(CIFabrication.Process.ID, attrQueryBldr.getAttributeQuery(
+                                CIFabrication.Process2ProductionCosting.FromLink));
+            }
+        };
+        return multi.execute(_parameter);
+    }
 
     /**
      * Warning for amount greater zero.

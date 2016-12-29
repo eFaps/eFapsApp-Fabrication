@@ -14,14 +14,15 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
+
 -->
 <ui-table xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
-    <uuid>266f79bf-28ea-4567-ae79-b24cad9e68e5</uuid>
+    <uuid>fb96da78-0309-4ff7-a7fe-aa550cacc681</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
     <definition>
         <version-expression>(version==latest)</version-expression>
-        <name>Fabrication_ProcessTable</name>
+        <name>Fabrication_ProcessUnfilteredTable</name>
         <field name="name">
             <property name="HRef">TREE</property>
             <property name="Attribute">Name</property>
@@ -32,27 +33,18 @@
             <property name="Label">Fabrication_Process/Description.Label</property>
         </field>
         <field name="date">
-            <property name="FilterType">FREETEXT</property>
-            <property name="FilterRequired">FALSE</property>
-            <property name="FilterBase">DATABASE</property>
             <property name="Attribute">Date</property>
             <property name="Label">Fabrication_Process/Date.Label</property>
         </field>
         <field name="status">
             <property name="Attribute">StatusAbstract</property>
-            <property name="FilterType">STATUS</property>
-            <property name="FilterRequired">TRUE</property>
-            <property name="FilterBase">DATABASE</property>
-            <property name="FilterDefault">Open</property>
             <property name="Label">Fabrication_Process/StatusAbstract.Label</property>
         </field>
         <field name="summary">
             <property name="Label">Fabrication_ProcessTable.summary.Label</property>
             <property name="UIProvider">org.efaps.admin.datamodel.ui.StringUI</property>
-            <trigger program="org.efaps.esjp.fabrication.Process"
-                method="getSummaryFieldValue"
-                name="Fabrication_ProcessTable.summary.UI_FIELD_VALUE"
-                event="UI_FIELD_VALUE"></trigger>
+            <trigger event="UI_FIELD_VALUE" method="getSummaryFieldValue"
+                name="Fabrication_ProcessTable.summary.UI_FIELD_VALUE" program="org.efaps.esjp.fabrication.Process" />
         </field>
     </definition>
 </ui-table>

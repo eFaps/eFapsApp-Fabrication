@@ -46,6 +46,7 @@ import org.efaps.admin.program.esjp.Listener;
 import org.efaps.db.Context;
 import org.efaps.db.Insert;
 import org.efaps.db.Instance;
+import org.efaps.db.InstanceQuery;
 import org.efaps.db.MultiPrintQuery;
 import org.efaps.db.PrintQuery;
 import org.efaps.db.QueryBuilder;
@@ -676,7 +677,45 @@ public abstract class Process_Base
     public Return createProductionCosting(final Parameter _parameter)
         throws EFapsException
     {
-        return createProductionCosting(_parameter, _parameter.getInstance());
+        Return ret;
+        if (InstanceUtils.isValid(_parameter.getInstance())) {
+            ret = createProductionCosting(_parameter, _parameter.getInstance());
+        } else {
+            ret = new Return();
+            for (final Instance inst : getSelectedInstances(_parameter)) {
+                createProductionCosting( ParameterUtil.clone(_parameter, ParameterValues.INSTANCE, inst), inst);
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Cancel previos production costing.
+     *
+     * @param _parameter the parameter
+     * @param _processInstance the process instance
+     * @throws EFapsException the eFaps exception
+     */
+    protected void cancelPreviosProductionCosting(final Parameter _parameter,
+                                                  final Instance _processInstance)
+        throws EFapsException
+    {
+        final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionCosting);
+        attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionCosting.FromLink, _processInstance);
+
+        final QueryBuilder queryBldr = new QueryBuilder(CISales.ProductionCosting);
+        queryBldr.addWhereAttrEqValue(CISales.ProductionCosting.Status,
+                        Status.find(CISales.ProductionCostingStatus.Draft),
+                        Status.find(CISales.ProductionCostingStatus.Open));
+        queryBldr.addWhereAttrInQuery(CISales.ProductionCosting.ID,
+                        attrQueryBldr.getAttributeQuery(CIFabrication.Process2ProductionCosting.ToLink));
+        final InstanceQuery query = queryBldr.getQuery();
+        query.executeWithoutAccessCheck();
+        while (query.next()) {
+            final Update update = new Update(query.getCurrentValue());
+            update.add(CISales.ProductionCosting.Status, Status.find(CISales.ProductionCostingStatus.Canceled));
+            update.executeWithoutAccessCheck();
+        }
     }
 
     /**
@@ -694,6 +733,7 @@ public abstract class Process_Base
         Return ret = new Return();
         if (InstanceUtils.isKindOf(_processInstance, CIFabrication.ProcessAbstract)) {
             final Parameter parameter = ParameterUtil.clone(_parameter);
+            cancelPreviosProductionCosting(parameter, _processInstance);
             if (parameter.getParameterValue(CIFormSales.Sales_ProductionCostingForm.date.name) == null) {
                 ParameterUtil.setParameterValues(parameter, CIFormSales.Sales_ProductionCostingForm.date.name,
                                new DateTime().toString());

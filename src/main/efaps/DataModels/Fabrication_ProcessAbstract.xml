@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
- Copyright 2003 - 2014 The eFaps Team
+ Copyright 2003 - 2017 The eFaps Team
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,17 +14,11 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
- Author:          The eFaps Team
- Revision:        $Rev$
- Last Changed:    $Date$
- Last Changed By: $Author$
-
 -->
 <datamodel-type xmlns="http://www.efaps.org/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.efaps.org/xsd http://www.efaps.org/xsd/eFaps_1.0.xsd">
     <uuid>7a4830dc-7516-4467-9759-26be13152da1</uuid>
     <file-application>eFapsApp-Fabrication</file-application>
-    <file-revision>$Rev$</file-revision>
     <definition>
         <version-expression>(version==latest)</version-expression>
         <name>Fabrication_ProcessAbstract</name>
@@ -118,5 +112,10 @@
             <sqltable>Fabrication_ProcessSQLTable</sqltable>
             <sqlcolumn>MODIFIED</sqlcolumn>
         </attribute>
+        <index msgPhrase="Fabrication_IndexProcessMsgPhrase">
+            <field id="nameLong" key="index.ERP_DocumentAbstract.Name" select="attribute[Name]" type="SEARCHLONG"
+                transform="org.efaps.esjp.admin.index.transformer.StringRight2Long"/>
+            <field id="name"    key="index.ERP_DocumentAbstract.Name" select="attribute[Name]" type="STRING" />
+        </index>
     </definition>
 </datamodel-type>

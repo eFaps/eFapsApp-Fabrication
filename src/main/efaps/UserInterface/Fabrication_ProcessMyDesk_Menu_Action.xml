@@ -25,6 +25,7 @@
         <childs>
             <child>Fabrication_ProcessMyDesk_Menu_Action_Create</child>
             <child>Fabrication_ProcessMyDesk_Menu_Action_CreateProductionCosting</child>
+            <child>Fabrication_ProcessMyDesk_Menu_Action_SetOpen</child>
             <child>Fabrication_ProcessMyDesk_Menu_Action_Delete</child>
         </childs>
     </definition>

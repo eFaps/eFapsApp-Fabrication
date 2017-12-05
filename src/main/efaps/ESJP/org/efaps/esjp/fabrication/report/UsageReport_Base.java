@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2014 The eFaps Team
+ * Copyright 2003 - 2017 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Revision:        $Rev$
- * Last Changed:    $Date$
- * Last Changed By: $Author$
  */
 
 package org.efaps.esjp.fabrication.report;
@@ -66,7 +63,6 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
  * TODO comment!
  *
  * @author The eFaps Team
- * @version $Id$
  */
 @EFapsUUID("80ace6a8-4161-4592-b044-82a2aa56fe29")
 @EFapsApplication("eFapsApp-Fabrication")
@@ -77,7 +73,7 @@ public abstract class UsageReport_Base
     /**
      * Logging instance used in this class.
      */
-    protected static final Logger LOG = LoggerFactory.getLogger(UsageReport.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UsageReport.class);
 
     /**
      * @param _parameter Parameter as passed by the eFasp API
@@ -140,8 +136,6 @@ public abstract class UsageReport_Base
         protected JRDataSource createDataSource(final Parameter _parameter)
             throws EFapsException
         {
-
-
             final Map<Instance, DataBean> dataMap = new HashMap<>();
             final QueryBuilder queryBldr = new QueryBuilder(CISales.PositionAbstract);
             add2QueryBldr(_parameter, queryBldr);
@@ -166,7 +160,7 @@ public abstract class UsageReport_Base
                     bean.setInstance(prodInst);
                     bean.setName(multi.<String>getSelect(prodNameSel));
                     bean.setDescription(multi.<String>getSelect(prodDescSel));
-                    bean.setUoM(Dimension.getUoM(multi.<Long>getAttribute( CISales.PositionAbstract.UoM)).getName());
+                    bean.setUoM(Dimension.getUoM(multi.<Long>getAttribute(CISales.PositionAbstract.UoM)).getName());
                 }
                 bean.addQuantity(multi.<BigDecimal>getAttribute(CISales.PositionAbstract.Quantity));
             }
@@ -234,8 +228,15 @@ public abstract class UsageReport_Base
             _builder.addColumn(quantityColumn, uoMColumn, nameColumn, descColumn);
         }
 
+        /**
+         * Gets the title.
+         *
+         * @param _parameter the parameter
+         * @param _key the key
+         * @return the title
+         */
         protected TextFieldBuilder<String> getTitle(final Parameter _parameter,
-                        final String _key)
+                                                    final String _key)
         {
             return DynamicReports.cmp.text(DBProperties.getProperty(ProductionOrderReport.class.getName() + "." + _key))
                             .setStyle(DynamicReports.stl.style().setBold(true));
@@ -284,16 +285,25 @@ public abstract class UsageReport_Base
         }
     }
 
+    /**
+     * The Class DataBean.
+     */
     public static class DataBean
     {
+
+        /** The name. */
         private String name;
 
+        /** The description. */
         private String description;
 
+        /** The instance. */
         private Instance instance;
 
+        /** The quantity. */
         private BigDecimal quantity = BigDecimal.ZERO;
 
+        /** The uo M. */
         private String uoM;
 
         /**
@@ -316,6 +326,11 @@ public abstract class UsageReport_Base
             this.uoM = _uoM;
         }
 
+        /**
+         * Gets the oid.
+         *
+         * @return the oid
+         */
         public String getOid()
         {
             return this.instance == null ? null : this.instance.getOid();
@@ -332,7 +347,9 @@ public abstract class UsageReport_Base
         }
 
         /**
-         * @param _attribute
+         * Adds the quantity.
+         *
+         * @param _quantity the quantity
          */
         public void addQuantity(final BigDecimal _quantity)
         {

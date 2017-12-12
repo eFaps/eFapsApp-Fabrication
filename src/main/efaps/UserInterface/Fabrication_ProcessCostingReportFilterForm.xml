@@ -27,7 +27,7 @@
             <property name="UIProvider">org.efaps.admin.datamodel.ui.DateUI</property>
             <property name="Label">org.efaps.esjp.fabrication.report.ProcessCostingReport.dateFrom</property>
             <trigger event="UI_FIELD_VALUE" method="getDateFromFieldValue"
-                name="ERP_ReportFilterForm4DateFromToType.dateFrom.UI_FIELD_VALUE"
+                name="Fabrication_ProcessCostingReportFilterForm.dateFrom.UI_FIELD_VALUE"
                 program="org.efaps.esjp.erp.FilteredReport" />
         </field>
         <field name="dateTo">
@@ -35,8 +35,29 @@
             <property name="UIProvider">org.efaps.admin.datamodel.ui.DateUI</property>
             <property name="Label">org.efaps.esjp.fabrication.report.ProcessCostingReport.dateTo</property>
             <trigger event="UI_FIELD_VALUE" method="getDateToFieldValue"
-                name="ERP_ReportFilterForm4DateFromToType.dateTo.UI_FIELD_VALUE"
+                name="Fabrication_ProcessCostingReportFilterForm.dateTo.UI_FIELD_VALUE"
                 program="org.efaps.esjp.erp.FilteredReport" />
+        </field>
+        <field name="groupBy">
+            <property name="ModeEdit">EDITABLE</property>
+            <property name="UIType">SNIPPLET</property>
+            <property name="Label">org.efaps.esjp.fabrication.report.ProcessCostingReport.groupBy</property>
+            <trigger event="UI_FIELD_VALUE" method="getGroupByFieldValue"
+                name="Fabrication_ProcessCostingReportFilterForm.groupBy.UI_FIELD_VALUE"
+                program="org.efaps.esjp.fabrication.report.ProcessCostingReport">
+                <property name="Enum">org.efaps.esjp.fabrication.report.ProcessCostingReport_Base$GroupBy</property>
+            </trigger>
+        </field>
+        <field name="currency">
+            <property name="ModeEdit">EDITABLE</property>
+            <property name="UIType">DROPDOWN</property>
+            <property name="Label">org.efaps.esjp.fabrication.report.ProcessCostingReport.currency</property>
+            <trigger event="UI_FIELD_VALUE" method="getCurrencyFieldValue"
+                name="Fabrication_ProcessCostingReportFilterForm.currency.UI_FIELD_VALUE"
+                program="org.efaps.esjp.fabrication.report.ProcessCostingReport">
+                 <property name="ShowBaseCurrency">false</property>
+                 <property name="ShowEmptyValue">false</property>
+            </trigger>
         </field>
     </definition>
 </ui-form>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2016 The eFaps Team
+ * Copyright 2003 - 2017 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,8 @@ import org.efaps.esjp.sales.document.UsageReport;
 import org.efaps.ui.wicket.util.EFapsKey;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * TODO comment!
@@ -100,6 +102,11 @@ public abstract class Process_Base
 
     /** The requestkey. */
     protected static final String REQUESTKEY = Process.class.getName() + ".RequestKey";
+
+    /**
+     * Logging instance used in this class.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(Process.class);
 
     /**
      * Register cost.
@@ -677,13 +684,13 @@ public abstract class Process_Base
     public Return createProductionCosting(final Parameter _parameter)
         throws EFapsException
     {
-        Return ret;
+        final Return ret;
         if (InstanceUtils.isValid(_parameter.getInstance())) {
             ret = createProductionCosting(_parameter, _parameter.getInstance());
         } else {
             ret = new Return();
             for (final Instance inst : getSelectedInstances(_parameter)) {
-                createProductionCosting( ParameterUtil.clone(_parameter, ParameterValues.INSTANCE, inst), inst);
+                createProductionCosting(ParameterUtil.clone(_parameter, ParameterValues.INSTANCE, inst), inst);
             }
         }
         return ret;
@@ -742,7 +749,8 @@ public abstract class Process_Base
                             _processInstance.getOid());
 
             final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
-            final DecimalFormat numFrmt = NumberFormatter.get().getFormatter();
+            final DecimalFormat numFrmt = NumberFormatter.get().getFrmt4UnitPrice(
+                            CISales.ProductionCostingPosition.getType().getName());
             final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionReport);
             attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionReport.FromLink, _processInstance);
 
@@ -780,7 +788,7 @@ public abstract class Process_Base
                                         .<BigDecimal>getAttribute(CISales.ProductionReportPosition.Quantity).add(
                                                         quant)));
                     } catch (final ParseException e) {
-
+                        LOG.error("Catched ParseException", e);
                     }
                 } else {
                     final Map<String, String> map = new HashMap<>();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2017 The eFaps Team
+ * Copyright 2003 - 2018 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -751,8 +751,14 @@ public abstract class Process_Base
             final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
             final DecimalFormat numFrmt = NumberFormatter.get().getFrmt4UnitPrice(
                             CISales.ProductionCostingPosition.getType().getName());
+            final QueryBuilder docAttrQueryBldr = new QueryBuilder(CISales.ProductionReport);
+            docAttrQueryBldr.addWhereAttrNotEqValue(CISales.ProductionReport.Status,
+                            Status.find(CISales.ProductionOrderStatus.Canceled));
+
             final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionReport);
             attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionReport.FromLink, _processInstance);
+            attrQueryBldr.addWhereAttrInQuery(CIFabrication.Process2ProductionReport.ToLink,
+                            docAttrQueryBldr.getAttributeQuery(CISales.ProductionReport.ID));
 
             final QueryBuilder queryBldr = new QueryBuilder(CISales.ProductionReportPosition);
             queryBldr.addWhereAttrInQuery(CISales.ProductionReportPosition.DocumentAbstractLink, attrQueryBldr

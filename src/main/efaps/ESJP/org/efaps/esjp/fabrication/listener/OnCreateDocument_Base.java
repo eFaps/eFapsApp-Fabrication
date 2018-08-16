@@ -24,7 +24,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +33,7 @@ import java.util.Set;
 
 import org.efaps.admin.datamodel.Dimension;
 import org.efaps.admin.datamodel.Dimension.UoM;
+import org.efaps.admin.datamodel.Status;
 import org.efaps.admin.event.Parameter;
 import org.efaps.admin.program.esjp.EFapsApplication;
 import org.efaps.admin.program.esjp.EFapsUUID;
@@ -145,12 +145,18 @@ public abstract class OnCreateDocument_Base
 
             final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
 
+            final QueryBuilder repAttrQueryBldr = new QueryBuilder(CISales.ProductionReport);
+            repAttrQueryBldr.addWhereAttrNotEqValue(CISales.ProductionReport.Status,
+                            Status.find(CISales.ProductionReportStatus.Canceled));
+
             final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionReport);
             attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionReport.FromLink, inst);
 
             final QueryBuilder queryBldr = new QueryBuilder(CISales.ProductionReportPosition);
             queryBldr.addWhereAttrInQuery(CISales.ProductionReportPosition.DocumentAbstractLink,
                             attrQueryBldr.getAttributeQuery(CIFabrication.Process2ProductionReport.ToLink));
+            queryBldr.addWhereAttrInQuery(CISales.ProductionReportPosition.DocumentAbstractLink,
+                            repAttrQueryBldr.getAttributeQuery(CISales.ProductionReport.ID));
             final MultiPrintQuery multi = queryBldr.getPrint();
             final SelectBuilder selDocInst = SelectBuilder.get()
                             .linkto(CISales.ProductionReportPosition.DocumentAbstractLink).instance();
@@ -441,16 +447,8 @@ public abstract class OnCreateDocument_Base
 
         final List<Map<String, Object>> strValues = wrapper.convertMap4Script(_parameter, beans);
 
-        Collections.sort(strValues, new Comparator<Map<String, Object>>()
-        {
-            @Override
-            public int compare(final Map<String, Object> _o1,
-                               final Map<String, Object> _o2)
-            {
-                return String.valueOf(_o1.get("productAutoComplete"))
-                                .compareTo(String.valueOf(_o2.get("productAutoComplete")));
-            }
-        });
+        Collections.sort(strValues, (_o1, _o2) -> String.valueOf(_o1.get("productAutoComplete"))
+                        .compareTo(String.valueOf(_o2.get("productAutoComplete"))));
 
         final Set<String> noEscape = new HashSet<>();
         noEscape.add("uoM");

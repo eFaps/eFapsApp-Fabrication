@@ -751,18 +751,19 @@ public abstract class Process_Base
             final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
             final DecimalFormat numFrmt = NumberFormatter.get().getFrmt4UnitPrice(
                             CISales.ProductionCostingPosition.getType().getName());
+
             final QueryBuilder docAttrQueryBldr = new QueryBuilder(CISales.ProductionReport);
             docAttrQueryBldr.addWhereAttrNotEqValue(CISales.ProductionReport.Status,
                             Status.find(CISales.ProductionOrderStatus.Canceled));
 
             final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionReport);
             attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionReport.FromLink, _processInstance);
-            attrQueryBldr.addWhereAttrInQuery(CIFabrication.Process2ProductionReport.ToLink,
-                            docAttrQueryBldr.getAttributeQuery(CISales.ProductionReport.ID));
 
             final QueryBuilder queryBldr = new QueryBuilder(CISales.ProductionReportPosition);
             queryBldr.addWhereAttrInQuery(CISales.ProductionReportPosition.DocumentAbstractLink, attrQueryBldr
                             .getAttributeQuery(CIFabrication.Process2ProductionReport.ToLink));
+            queryBldr.addWhereAttrInQuery(CISales.ProductionReportPosition.DocumentAbstractLink,
+                            docAttrQueryBldr.getAttributeQuery(CISales.ProductionReport.ID));
             final MultiPrintQuery multi = queryBldr.getPrint();
             final SelectBuilder selDocInst = SelectBuilder.get().linkto(
                             CISales.ProductionReportPosition.DocumentAbstractLink).instance();

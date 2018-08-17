@@ -145,8 +145,8 @@ public abstract class OnCreateDocument_Base
 
             final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
 
-            final QueryBuilder repAttrQueryBldr = new QueryBuilder(CISales.ProductionReport);
-            repAttrQueryBldr.addWhereAttrNotEqValue(CISales.ProductionReport.Status,
+            final QueryBuilder docAttrQueryBldr = new QueryBuilder(CISales.ProductionReport);
+            docAttrQueryBldr.addWhereAttrNotEqValue(CISales.ProductionReport.Status,
                             Status.find(CISales.ProductionReportStatus.Canceled));
 
             final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionReport);
@@ -156,7 +156,7 @@ public abstract class OnCreateDocument_Base
             queryBldr.addWhereAttrInQuery(CISales.ProductionReportPosition.DocumentAbstractLink,
                             attrQueryBldr.getAttributeQuery(CIFabrication.Process2ProductionReport.ToLink));
             queryBldr.addWhereAttrInQuery(CISales.ProductionReportPosition.DocumentAbstractLink,
-                            repAttrQueryBldr.getAttributeQuery(CISales.ProductionReport.ID));
+                            docAttrQueryBldr.getAttributeQuery(CISales.ProductionReport.ID));
             final MultiPrintQuery multi = queryBldr.getPrint();
             final SelectBuilder selDocInst = SelectBuilder.get()
                             .linkto(CISales.ProductionReportPosition.DocumentAbstractLink).instance();

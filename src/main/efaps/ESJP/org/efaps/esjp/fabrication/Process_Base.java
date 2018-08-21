@@ -754,7 +754,7 @@ public abstract class Process_Base
 
             final QueryBuilder docAttrQueryBldr = new QueryBuilder(CISales.ProductionReport);
             docAttrQueryBldr.addWhereAttrNotEqValue(CISales.ProductionReport.Status,
-                            Status.find(CISales.ProductionOrderStatus.Canceled));
+                            Status.find(CISales.ProductionReportStatus.Canceled));
 
             final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionReport);
             attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionReport.FromLink, _processInstance);

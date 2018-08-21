@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2015 The eFaps Team
+ * Copyright 2003 - 2018 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,12 +203,11 @@ public abstract class ProcessReport_Base
 
         final QueryBuilder pAttrQueryBldr = new QueryBuilder(CIFabrication.Process2DocumentAbstract);
         pAttrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2DocumentAbstract.FromLinkAbstract, processInst);
-        pAttrQueryBldr.addWhereAttrInQuery(CIFabrication.Process2DocumentAbstract.ToLinkAbstract,
-                        oAttrQueryBldr.getAttributeQuery(CISales.DocumentStockAbstract.ID));
 
         queryBldr.addWhereAttrInQuery(CISales.PositionAbstract.DocumentAbstractLink,
                         pAttrQueryBldr.getAttributeQuery(CIFabrication.Process2DocumentAbstract.ToLinkAbstract));
-
+        queryBldr.addWhereAttrInQuery(CISales.PositionAbstract.DocumentAbstractLink,
+                        oAttrQueryBldr.getAttributeQuery(CISales.DocumentStockAbstract.ID));
         add2QueryBldr(_parameter, queryBldr);
 
         final MultiPrintQuery multi = queryBldr.getPrint();
@@ -392,16 +390,7 @@ public abstract class ProcessReport_Base
             final ValuesBean values = getReportContainer().getValues(_parameter, getCurrencyInstance());
 
             final List<DataBean> datasource = new ArrayList<>(values.getDataMap().values());
-            Collections.sort(datasource, new Comparator<DataBean>()
-            {
-
-                @Override
-                public int compare(final DataBean _arg0,
-                                   final DataBean _arg1)
-                {
-                    return _arg0.getProdName().compareTo(_arg1.getProdName());
-                }
-            });
+            Collections.sort(datasource, (_arg0, _arg1) -> _arg0.getProdName().compareTo(_arg1.getProdName()));
 
             createTitle(_parameter, values.getParaMap().values());
 
@@ -800,7 +789,7 @@ public abstract class ProcessReport_Base
          */
         public String getOid()
         {
-            return getProdInst() == null ? null : this.getProdInst().getOid();
+            return getProdInst() == null ? null : getProdInst().getOid();
         }
 
         /**

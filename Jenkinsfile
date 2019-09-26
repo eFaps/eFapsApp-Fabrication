@@ -6,6 +6,9 @@ properties([
 
 pipeline {
   agent any
+  tools {
+    jdk 'jdk8'
+  }
   stages {
     stage('Build') {
       steps {
@@ -24,17 +27,6 @@ pipeline {
       post {
         always {
             step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
-        }
-      }
-    }
-    stage('Deploy') {
-      when {
-        branch 'master'
-      }
-      steps {
-        withMaven(maven: 'M3.6', mavenSettingsConfig: 'efaps8', mavenLocalRepo: "$WORKSPACE/../../.m2/${env.BRANCH_NAME}",
-            options: [openTasksPublisher(disabled: true)]) {
-          sh 'mvn deploy -DskipTests'
         }
       }
     }

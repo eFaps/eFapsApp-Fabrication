@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2018 The eFaps Team
+ * Copyright 2003 - 2020 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -750,7 +750,7 @@ public abstract class Process_Base
 
             final DecimalFormat qtyFrmt = NumberFormatter.get().getTwoDigitsFormatter();
             final DecimalFormat numFrmt = NumberFormatter.get().getFrmt4UnitPrice(
-                            CISales.ProductionCostingPosition.getType().getName());
+                            CISales.ProductionCostingPosition.getType());
 
             final QueryBuilder docAttrQueryBldr = new QueryBuilder(CISales.ProductionReport);
             docAttrQueryBldr.addWhereAttrNotEqValue(CISales.ProductionReport.Status,

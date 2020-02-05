@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 - 2016 The eFaps Team
+ * Copyright 2003 - 2020 The eFaps Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -292,7 +292,7 @@ public abstract class OnCreateDocument_Base
                             inst.getOid(), name));
 
             final DecimalFormat qtyFrmt = NumberFormatter.get().getFrmt4Quantity(
-                            new ProductionReport().getTypeName4SysConf(_parameter));
+                            new ProductionReport().getCIType().getType());
 
             final QueryBuilder attrQueryBldr = new QueryBuilder(CIFabrication.Process2ProductionOrder);
             attrQueryBldr.addWhereAttrEqValue(CIFabrication.Process2ProductionOrder.FromLink, inst);

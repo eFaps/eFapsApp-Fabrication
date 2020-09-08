@@ -261,7 +261,7 @@ type.label as typeName]]>
 						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
 							<property name="com.jaspersoft.studio.unit.height" value="px"/>
-							<textField isStretchWithOverflow="true" pattern="#,##0.###" isBlankWhenNull="true">
+							<textField textAdjust="StretchHeight" pattern="#,##0.###" isBlankWhenNull="true">
 								<reportElement x="0" y="0" width="63" height="16" uuid="1ffcf0db-55d2-402b-93c8-9b2b77c32c01"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
 									<font size="11"/>
@@ -289,7 +289,7 @@ type.label as typeName]]>
 						</jr:tableHeader>
 						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
-							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 								<reportElement x="0" y="0" width="47" height="16" uuid="3ccbf068-b467-445e-b073-9ab9acf779f5"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
 									<font size="11"/>
@@ -318,7 +318,7 @@ type.label as typeName]]>
 						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.unit.width" value="px"/>
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
-							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 								<reportElement x="0" y="0" width="82" height="16" uuid="921814d6-708b-4b13-a44d-9b38da175e10">
 									<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 									<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
@@ -348,7 +348,7 @@ type.label as typeName]]>
 						</jr:tableHeader>
 						<jr:detailCell height="16">
 							<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
-							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 								<reportElement x="0" y="0" width="363" height="16" uuid="7b94ae0d-711e-4ccf-b12a-3d54e433d075">
 									<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 								</reportElement>

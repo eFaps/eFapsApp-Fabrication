@@ -49,6 +49,13 @@ public final class Fabrication
 
     /** See description. */
     @EFapsSysConfAttribute
+    public static final BooleanSysConfAttribute ACTIVATE = new BooleanSysConfAttribute()
+                    .sysConfUUID(SYSCONFUUID)
+                    .key(BASE + "Activate")
+                    .description("Activate fabrication");
+
+    /** See description. */
+    @EFapsSysConfAttribute
     public static final BooleanSysConfAttribute PROCESSONEPRODUCT = new BooleanSysConfAttribute()
                     .sysConfUUID(SYSCONFUUID)
                     .key(BASE + "Process.OneProductOnly")

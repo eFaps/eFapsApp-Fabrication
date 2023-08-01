@@ -215,7 +215,7 @@ public abstract class Process_Base
         // call possible listeners
         for (final IOnCreateDocument listener : Listener.get().<IOnCreateDocument>invoke(
                         IOnCreateDocument.class)) {
-            listener.afterCreate(_parameter, createdDoc);
+            listener.afterCreate(_parameter, createdDoc.getInstance());
         }
 
         final Return ret = new Return();

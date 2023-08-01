@@ -90,7 +90,7 @@ public abstract class OnCreateDocument_Base
      */
     @Override
     public void afterCreate(final Parameter _parameter,
-                            final CreatedDoc _createdDoc)
+                            final Instance instance)
         throws EFapsException
     {
         // not used

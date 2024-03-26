@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.2.1.final using JasperReports Library version 6.2.1  -->
-<!-- 2016-08-01T11:38:56 -->
+
+
+
+
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Fabrication_ProcessingOrder" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isFloatColumnFooter="true" whenResourceMissingType="Error" uuid="fb08fb95-d16a-4c58-b4d0-d97a993842b0">
 	<property name="org.efaps.admin.program.jasper.EFapsApplication" value="eFapsApp-Fabrication"/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Rudolf Prod"/>

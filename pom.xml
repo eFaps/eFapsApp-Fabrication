@@ -17,8 +17,6 @@
 
 -->
 
-
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -29,7 +27,7 @@
     </parent>
     <packaging>jar</packaging>
     <groupId>org.efaps.apps</groupId>
-    <artifactId>fabrication</artifactId>
+    <artifactId>efaps-app-fabrication</artifactId>
     <name>eFaps Production / Manufacture / Fabrication App</name>
     <description>
     </description>
@@ -69,34 +67,6 @@
         <url>http://www.efaps.org</url>
     </organization>
 
-    
-
-    <issueManagement>
-        <system>eFaps Issues on Google Code</system>
-        <url>http://issues.efaps.org</url>
-    </issueManagement>
-    <scm>
-        <connection>scm:svn:http://efaps.googlecode.com/svn/eFaps-WebApp-Install</connection>
-        <developerConnection>scm:svn:https://efaps.googlecode.com/svn/eFaps-WebApp-Install</developerConnection>
-        <url>http://efaps.googlecode.com/svn/eFaps-WebApp-Install</url>
-    </scm>
-    <distributionManagement>
-        <site>
-            <id>efaps</id>
-            <name>Maven eFaps Plug-In Site</name>
-            <url>svn:https://eFaps.googlecode.com/svn/site/eFaps-WebApp-Install</url>
-        </site>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
     <build>
         <plugins>
             <plugin>
@@ -118,7 +88,7 @@
                     <ciName>Fabrication</ciName>
                 </configuration>
                 <dependencies>
-                    
+
 
                     <dependency>
                         <groupId>org.apache.commons</groupId>
@@ -148,12 +118,12 @@
     <dependencies>
         <dependency>
             <groupId>org.efaps.apps</groupId>
-            <artifactId>sales</artifactId>
+            <artifactId>efaps-app-sales</artifactId>
             <version>${efaps.app.dependencies}</version>
         </dependency>
         <dependency>
             <groupId>org.efaps.apps</groupId>
-            <artifactId>archives</artifactId>
+            <artifactId>efaps-app-archives</artifactId>
             <version>${efaps.app.dependencies}</version>
         </dependency>
         <dependency>

@@ -81,7 +81,6 @@ import org.efaps.esjp.products.Storage;
 import org.efaps.esjp.products.Transaction_Base;
 import org.efaps.esjp.sales.document.ProductionCosting;
 import org.efaps.esjp.sales.document.UsageReport;
-import org.efaps.ui.wicket.util.EFapsKey;
 import org.efaps.util.EFapsException;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -350,9 +349,9 @@ public abstract class Process_Base
         while (multi.next()) {
             final String name = multi.<String>getAttribute(CIFabrication.ProcessAbstract.Name);
             final Map<String, String> map = new HashMap<>();
-            map.put(EFapsKey.AUTOCOMPLETE_KEY.getKey(), multi.getAttribute(key).toString());
-            map.put(EFapsKey.AUTOCOMPLETE_VALUE.getKey(), name);
-            map.put(EFapsKey.AUTOCOMPLETE_CHOICE.getKey(), name);
+            map.put("eFapsAutoCompleteKEY", multi.getAttribute(key).toString());
+            map.put("eFapsAutoCompleteVALUE", name);
+            map.put("eFapsAutoCompleteCHOICE", name);
             orderMap.put(name, map);
         }
         list.addAll(orderMap.values());

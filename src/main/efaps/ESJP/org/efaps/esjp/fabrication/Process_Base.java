@@ -161,8 +161,7 @@ public abstract class Process_Base
             map.put("productDesc", parentBean.getProdDescription());
             map.put("currencyLink", parentBean.getCurrencyInst().getId());
             map.put("price", parentBean.getUnitCost());
-            map.put("validUntil_eFapsDate",
-                            org.efaps.ui.wicket.util.DateUtil.getDate4Parameter(new DateTime().plusYears(10)));
+            map.put("validUntil_eFapsDate", new DateTime().plusYears(10));
         }
 
         final Return retVal = new Return();
